@@ -1,2 +1,3 @@
 # QUBE
-Pronounced "Cube" 
+Pronounced "Cube"
+❒ more to come!
