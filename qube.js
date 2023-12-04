@@ -1,8 +1,10 @@
+// IMPORTS
 import * as THREE from "three";
 import WebGL from "three/addons/capabilities/WebGL.js";
+
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-//
+// WARNINGS
 
 if (!WebGL.isWebGLAvailable()) {
   const warning = WebGL.getWebGLErrorMessage();
@@ -24,14 +26,14 @@ const FAR = 1000;
 
 const AXIS_SIZE = 5;
 
-//
+// MAIN COMPONENTS
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(FOV, ASPECT, NEAR, FAR);
 const renderer = new THREE.WebGLRenderer();
 
 const controls = new OrbitControls(camera, renderer.domElement);
-const axes = new THREE.AxesHelper(AXIS_SIZE);
+// const axes = new THREE.AxesHelper(AXIS_SIZE);
 
 //
 
@@ -48,7 +50,7 @@ let outer_cube = {
   height: 1.7,
   depth: 1.7,
   material: {
-    // color: 0xfdfefe, // white
+    color: 0xfdfefe, // white
     wireframe: true,
   },
 };
@@ -69,10 +71,10 @@ const OUTER_GEOMETRY = new THREE.BoxGeometry(
   outer_cube?.height,
   outer_cube?.depth
 );
-const OUTER_MATERIAL = new THREE.MeshBasicMaterial(
-  // outer_cube?.material?.color,
-  outer_cube?.material?.wireframe
-);
+const OUTER_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_cube?.material?.color,
+  wireframe: outer_cube?.material?.wireframe,
+});
 
 // INNER CUBE
 const INNER_GEOMETRY = new THREE.BoxGeometry(
@@ -80,17 +82,17 @@ const INNER_GEOMETRY = new THREE.BoxGeometry(
   inner_cube?.height,
   inner_cube?.depth
 );
-const INNER_MATERIAL = new THREE.MeshBasicMaterial(
-  inner_cube?.material?.color,
-  inner_cube?.material?.wireframe
-);
+const INNER_MATERIAL = new THREE.MeshBasicMaterial({
+  color: inner_cube?.material?.color,
+  wireframe: inner_cube?.material?.wireframe,
+});
 
 const OUTER_CUBE = new THREE.Mesh(OUTER_GEOMETRY, OUTER_MATERIAL);
 const INNER_CUBE = new THREE.Mesh(INNER_GEOMETRY, INNER_MATERIAL);
 
 //
 
-scene.add(axes);
+// scene.add(axes);
 
 scene.add(OUTER_CUBE);
 scene.add(INNER_CUBE);
