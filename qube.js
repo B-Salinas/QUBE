@@ -65,6 +65,28 @@ let inner_cube = {
   },
 };
 
+let torus = {
+  radius: 10, // default 1, expects FLOAT
+  tube: 3, //default 0.4, expects FLOAT
+  radicalSeg: 16, // default 12, expects INTEGER
+  tubiularSeg: 100, // defaults 49, expects INTEGER
+  arc: Math.PI * 2, // default Math.PI * 2, expects FLOAT
+  material: {
+    color: 0x00bfff,
+    wireframe: true,
+  },
+};
+
+let sphere = {
+  radius: Math.PI,
+  width: 32, // default 32
+  height: 16, // default 16
+  material: {
+    color: 0x00bfff,
+    wireframe: true,
+  },
+};
+
 // OUTER CUBE
 const OUTER_GEOMETRY = new THREE.BoxGeometry(
   outer_cube?.width,
@@ -87,15 +109,42 @@ const INNER_MATERIAL = new THREE.MeshBasicMaterial({
   wireframe: inner_cube?.material?.wireframe,
 });
 
+// TORUS
+const TORUS_GEOMETRY = new THREE.TorusGeometry(
+  torus?.radius,
+  torus?.tube,
+  torus?.radicalSeg,
+  torus?.tubiularSeg
+);
+const TORUS_MATERIAL = new THREE.MeshBasicMaterial({
+  color: torus?.material?.color,
+  wireframe: torus?.material?.wireframe,
+});
+
+// SPHERE
+const SPHERE_GEOMETRY = new THREE.SphereGeometry(
+  sphere?.radius,
+  sphere?.width,
+  sphere?.height
+);
+const SPHERE_MATERIAL = new THREE.MeshBasicMaterial({
+  color: sphere?.material?.color,
+  wireframe: sphere?.material?.wireframe,
+});
+
 const OUTER_CUBE = new THREE.Mesh(OUTER_GEOMETRY, OUTER_MATERIAL);
 const INNER_CUBE = new THREE.Mesh(INNER_GEOMETRY, INNER_MATERIAL);
 
-//
+const TORUS = new THREE.Mesh(TORUS_GEOMETRY, TORUS_MATERIAL);
+const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 
 // scene.add(axes);
 
 scene.add(OUTER_CUBE);
 scene.add(INNER_CUBE);
+
+scene.add(TORUS);
+scene.add(SPHERE);
 
 //
 
@@ -107,8 +156,8 @@ let camera_position = {
 
 camera.position.set(camera_position?.x, camera_position?.y, camera_position?.z);
 
-controls.update();
-controls.autoRotate = true;
+// controls.update();
+// controls.autoRotate = true;
 
 //
 
