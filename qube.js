@@ -148,13 +148,19 @@ scene.add(SPHERE);
 
 //
 
-let camera_position = {
-  x: 2,
-  y: 2,
-  z: 2,
-};
+// let camera_position = {
+//   x: 2,
+//   y: 2,
+//   z: 2,
+// };
 
-camera.position.set(camera_position?.x, camera_position?.y, camera_position?.z);
+// camera.position.set(
+//   camera_position?.x,
+//   camera_position?.y,
+//   camera_position?.z
+// );
+
+camera.position.set(2, 2, 2);
 
 // controls.update();
 // controls.autoRotate = true;
@@ -172,7 +178,7 @@ function animate() {
   INNER_CUBE.rotation.y += 0.005;
   INNER_CUBE.rotation.z += 0.005;
 
-  controls.update();
+  // controls.update();
 
   renderer.render(scene, camera);
 }
