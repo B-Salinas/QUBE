@@ -9,7 +9,7 @@
 import * as THREE from "three";
 import WebGL from "three/addons/capabilities/WebGL.js";
 
-// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // .
@@ -47,9 +47,9 @@ let perspective = {
   ASPECT: screen?.width / screen?.height,
   NEAR: 0.1,
   FAR: 1000,
-}
+};
 
-const AXIS_SIZE = 5;
+const AXIS_SIZE = 4;
 
 // .
 // .
@@ -57,7 +57,7 @@ const AXIS_SIZE = 5;
 // .
 // .
 
-// S E T U P 
+// S E T U P
 
 /* I'm not sure how or when to use this */
 // const loader = new GLTFLoader();
@@ -68,7 +68,7 @@ const camera = new THREE.PerspectiveCamera(
   perspective?.FOV,
   perspective?.ASPECT,
   perspective?.NEAR,
-  perspective?.FAR,
+  perspective?.FAR
 );
 const renderer = new THREE.WebGLRenderer();
 
@@ -91,7 +91,7 @@ document.body.appendChild(renderer.domElement);
 /* AGAIN, are all of these things I can import/export? 
 How can I make this easier to read (Big O Notation easier, and user-friendly)? */
 
-// OUTER CUBE 
+// OUTER CUBE
 let outer_cube = {
   geometry: {
     width: 5,
@@ -108,7 +108,7 @@ let outer_cube = {
 const OUTER_GEOMETRY = new THREE.BoxGeometry(
   outer_cube?.geometry?.width,
   outer_cube?.geometry?.height,
-  outer_cube?.geometry?.depth,
+  outer_cube?.geometry?.depth
 );
 const OUTER_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_cube?.material?.color,
@@ -134,7 +134,7 @@ let inner_cube = {
 const INNER_GEOMETRY = new THREE.BoxGeometry(
   inner_cube?.geometry?.width,
   inner_cube?.geometry?.height,
-  inner_cube?.geometry?.depth,
+  inner_cube?.geometry?.depth
 );
 const INNER_MATERIAL = new THREE.MeshBasicMaterial({
   color: inner_cube?.material?.color,
@@ -222,8 +222,10 @@ scene.add(axes);
 
 scene.add(OUTER_CUBE);
 scene.add(INNER_CUBE);
-scene.add(TORUS);
-scene.add(SPHERE);
+
+/* commented out for now because I need to focus on "creating" the inner cube using the dimensions of the outer. I also need to start imposing mathematical limits. */
+// scene.add(TORUS);
+// scene.add(SPHERE);
 
 // .
 // .
@@ -243,26 +245,26 @@ controls.autoRotate = true;
 // .
 // .
 
-// A N I M A T E 
+// A N I M A T E
 
 function animate() {
   requestAnimationFrame(animate);
 
-  OUTER_CUBE.rotation.x += 0.0007;
-  OUTER_CUBE.rotation.y += 0.0007;
-  OUTER_CUBE.rotation.z += 0.0007;
+  OUTER_CUBE.rotation.x += 0.007;
+  OUTER_CUBE.rotation.y += 0.007;
+  OUTER_CUBE.rotation.z += 0.007;
 
-  INNER_CUBE.rotation.x += 0.0002;
-  INNER_CUBE.rotation.y += 0.0002;
-  INNER_CUBE.rotation.z += 0.0002;
+  INNER_CUBE.rotation.x += 0.002;
+  INNER_CUBE.rotation.y += 0.002;
+  INNER_CUBE.rotation.z += 0.002;
 
-  TORUS.rotation.x += 0.009;
-  TORUS.rotation.y += 0.009;
-  TORUS.rotation.z += 0.009;
+  // TORUS.rotation.x += 0.009;
+  // TORUS.rotation.y += 0.009;
+  // TORUS.rotation.z += 0.009;
 
-  SPHERE.rotation.x += 0.004;
-  SPHERE.rotation.y += 0.004;
-  SPHERE.rotation.z += 0.004;
+  // SPHERE.rotation.x += 0.004;
+  // SPHERE.rotation.y += 0.004;
+  // SPHERE.rotation.z += 0.004;
 
   controls.update();
 
