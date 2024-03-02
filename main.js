@@ -224,8 +224,8 @@ scene.add(OUTER_CUBE);
 scene.add(INNER_CUBE);
 
 /* commented out for now because I need to focus on "creating" the inner cube using the dimensions of the outer. I also need to start imposing mathematical limits. */
-// scene.add(TORUS);
-// scene.add(SPHERE);
+scene.add(TORUS);
+scene.add(SPHERE);
 
 // .
 // .
@@ -250,13 +250,13 @@ controls.autoRotate = true;
 function animate() {
   requestAnimationFrame(animate);
 
-  OUTER_CUBE.rotation.x += 0.007;
-  OUTER_CUBE.rotation.y += 0.007;
-  OUTER_CUBE.rotation.z += 0.007;
+  // OUTER_CUBE.rotation.x += 0.007;
+  // OUTER_CUBE.rotation.y += 0.007;
+  // OUTER_CUBE.rotation.z += 0.007;
 
-  INNER_CUBE.rotation.x += 0.002;
-  INNER_CUBE.rotation.y += 0.002;
-  INNER_CUBE.rotation.z += 0.002;
+  // INNER_CUBE.rotation.x += 0.002;
+  // INNER_CUBE.rotation.y += 0.002;
+  // INNER_CUBE.rotation.z += 0.002;
 
   // TORUS.rotation.x += 0.009;
   // TORUS.rotation.y += 0.009;
