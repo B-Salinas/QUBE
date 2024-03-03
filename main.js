@@ -49,8 +49,7 @@ let perspective = {
   FAR: 1000,
 };
 
-const AXIS_SIZE = 4;
-
+const AXIS_SIZE = 0.1;
 // .
 // .
 // .
@@ -90,6 +89,20 @@ document.body.appendChild(renderer.domElement);
 
 /* AGAIN, are all of these things I can import/export? 
 How can I make this easier to read (Big O Notation easier, and user-friendly)? */
+
+// const _outer_cube = {
+//   geometry: {
+//     width: 5,
+//     height: 5,
+//     depth: 5,
+//   },
+//   material: {
+//     color: 0xfdfefe, // white
+//     // color: 0x00bfff, // electric blue
+//     wireframe: true,
+//   },
+//   // I want to point to other objects and we just make everything from here - but how nested and what about run time?
+// };
 
 // OUTER CUBE
 let outer_cube = {
@@ -206,9 +219,9 @@ const SPHERE_MATERIAL = new THREE.MeshBasicMaterial({
 // G & M   C R E A T I O N
 
 const OUTER_CUBE = new THREE.Mesh(OUTER_GEOMETRY, OUTER_MATERIAL);
-const INNER_CUBE = new THREE.Mesh(INNER_GEOMETRY, INNER_MATERIAL);
-const TORUS = new THREE.Mesh(TORUS_GEOMETRY, TORUS_MATERIAL);
-const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
+// const INNER_CUBE = new THREE.Mesh(INNER_GEOMETRY, INNER_MATERIAL);
+// const TORUS = new THREE.Mesh(TORUS_GEOMETRY, TORUS_MATERIAL);
+// const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 
 // .
 // .
@@ -221,11 +234,9 @@ const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 scene.add(axes);
 
 scene.add(OUTER_CUBE);
-scene.add(INNER_CUBE);
-
-/* commented out for now because I need to focus on "creating" the inner cube using the dimensions of the outer. I also need to start imposing mathematical limits. */
-scene.add(TORUS);
-scene.add(SPHERE);
+// scene.add(INNER_CUBE);
+// scene.add(TORUS);
+// scene.add(SPHERE);
 
 // .
 // .
@@ -235,11 +246,11 @@ scene.add(SPHERE);
 
 // C A M E R A   C O N T R O L S
 
-camera.position.set(1, 4, 9);
+camera.position.set(1, 5, 9);
 
 controls.autoRotate = true;
 
-// .
+// .r
 // .
 // .
 // .
@@ -278,3 +289,4 @@ animate();
 // .
 // .
 // .
+//

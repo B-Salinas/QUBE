@@ -17,13 +17,13 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Create a cube
-let cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+let cubeGeometry = new THREE.BoxGeometry(2, 2, 2, 3, 3, 3);
 let cubeMaterial = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   wireframe: true,
 });
-let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-scene.add(cube);
+
+console.log(cubeGeometry);
 
 // Create lines from opposite face midpoints
 let face1 = cubeGeometry.faces[0]; // assuming a standard cube
@@ -41,7 +41,11 @@ let lineGeometry = new THREE.BufferGeometry().setFromPoints([
   midpoint2,
 ]);
 let lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+
+let cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 let line = new THREE.Line(lineGeometry, lineMaterial);
+
+scene.add(cube);
 scene.add(line);
 
 // Set camera position
@@ -52,8 +56,8 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Rotate the cube
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+  cube.rotation.x += 0.08;
+  cube.rotation.y += 0.05;
 
   renderer.render(scene, camera);
 }
