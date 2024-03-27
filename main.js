@@ -107,9 +107,9 @@ How can I make this easier to read (Big O Notation easier, and user-friendly)? *
 // OUTER CUBE
 let outer_cube = {
   geometry: {
-    width: 5,
-    height: 5,
-    depth: 5,
+    width: 9.75,
+    height: 9.75,
+    depth: 9.75,
   },
   material: {
     color: 0xfdfefe, // white
@@ -118,14 +118,44 @@ let outer_cube = {
   },
 };
 
-const OUTER_GEOMETRY = new THREE.BoxGeometry(
+const OUTER_CUBE_GEOMETRY = new THREE.BoxGeometry(
   outer_cube?.geometry?.width,
   outer_cube?.geometry?.height,
   outer_cube?.geometry?.depth
 );
-const OUTER_MATERIAL = new THREE.MeshBasicMaterial({
+const OUTER_CUBE_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_cube?.material?.color,
   wireframe: outer_cube?.material?.wireframe,
+});
+
+//
+
+// TORUS
+let outer_torus = {
+  geometry: {
+    radius: 3.75, // default 1, expects FLOAT
+    tube: 0.9, //default 0.4, expects FLOAT
+    radicalSeg: 12, // default 12, expects INTEGER
+    tubiularSeg: 75, // defaults 49, expects INTEGER
+    arc: Math.PI * 2, // default Math.PI * 2, expects FLOAT
+  },
+  material: {
+    color: 0xfdfefe, // white
+    // color: 0x00bfff, // blue
+    wireframe: true,
+  },
+};
+
+const OUTER_TORUS_GEOMETRY = new THREE.TorusGeometry(
+  outer_torus?.geometry?.radius,
+  outer_torus?.geometry?.tube,
+  outer_torus?.geometry?.radicalSeg,
+  outer_torus?.geometry?.tubiularSeg,
+  outer_torus?.geometry?.arc
+);
+const OUTER_TORUS_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_torus?.material?.color,
+  wireframe: outer_torus?.material?.wireframe,
 });
 
 //
@@ -139,17 +169,17 @@ let inner_cube = {
   },
   material: {
     color: 0xfdfefe, // white
-    // color: 0x00bfff, // electric blue
+    // color: 0x00bfff, // blue
     wireframe: true,
   },
 };
 
-const INNER_GEOMETRY = new THREE.BoxGeometry(
+const INNER_CUBE_GEOMETRY = new THREE.BoxGeometry(
   inner_cube?.geometry?.width,
   inner_cube?.geometry?.height,
   inner_cube?.geometry?.depth
 );
-const INNER_MATERIAL = new THREE.MeshBasicMaterial({
+const INNER_CUBE_MATERIAL = new THREE.MeshBasicMaterial({
   color: inner_cube?.material?.color,
   wireframe: inner_cube?.material?.wireframe,
 });
@@ -157,7 +187,7 @@ const INNER_MATERIAL = new THREE.MeshBasicMaterial({
 //
 
 // TORUS
-let torus = {
+let inner_torus = {
   geometry: {
     radius: 1, // default 1, expects FLOAT
     tube: 0.4, //default 0.4, expects FLOAT
@@ -167,21 +197,21 @@ let torus = {
   },
   material: {
     color: 0xfdfefe, // white
-    // color: 0x00bfff, // electric blue
+    // color: 0x00bfff, // blue
     wireframe: true,
   },
 };
 
-const TORUS_GEOMETRY = new THREE.TorusGeometry(
-  torus?.geometry?.radius,
-  torus?.geometry?.tube,
-  torus?.geometry?.radicalSeg,
-  torus?.geometry?.tubiularSeg,
-  torus?.geometry?.arc
+const INNER_TORUS_GEOMETRY = new THREE.TorusGeometry(
+  inner_torus?.geometry?.radius,
+  inner_torus?.geometry?.tube,
+  inner_torus?.geometry?.radicalSeg,
+  inner_torus?.geometry?.tubiularSeg,
+  inner_torus?.geometry?.arc
 );
-const TORUS_MATERIAL = new THREE.MeshBasicMaterial({
-  color: torus?.material?.color,
-  wireframe: torus?.material?.wireframe,
+const INNER_TORUS_MATERIAL = new THREE.MeshBasicMaterial({
+  color: inner_torus?.material?.color,
+  wireframe: inner_torus?.material?.wireframe,
 });
 
 //
@@ -195,7 +225,7 @@ let sphere = {
   },
   material: {
     // color: 0xfdfefe, // white
-    color: 0x00bfff, // electric blue
+    color: 0x00bfff, // blue
     wireframe: true,
   },
 };
@@ -218,10 +248,11 @@ const SPHERE_MATERIAL = new THREE.MeshBasicMaterial({
 
 // G & M   C R E A T I O N
 
-const OUTER_CUBE = new THREE.Mesh(OUTER_GEOMETRY, OUTER_MATERIAL);
-// const INNER_CUBE = new THREE.Mesh(INNER_GEOMETRY, INNER_MATERIAL);
-// const TORUS = new THREE.Mesh(TORUS_GEOMETRY, TORUS_MATERIAL);
-// const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
+const OUTER_CUBE = new THREE.Mesh(OUTER_CUBE_GEOMETRY, OUTER_CUBE_MATERIAL);
+const OUTER_TORUS = new THREE.Mesh(OUTER_TORUS_GEOMETRY, OUTER_TORUS_MATERIAL);
+const INNER_CUBE = new THREE.Mesh(INNER_CUBE_GEOMETRY, INNER_CUBE_MATERIAL);
+const INNER_TORUS = new THREE.Mesh(INNER_TORUS_GEOMETRY, INNER_TORUS_MATERIAL);
+const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 
 // .
 // .
@@ -234,9 +265,10 @@ const OUTER_CUBE = new THREE.Mesh(OUTER_GEOMETRY, OUTER_MATERIAL);
 scene.add(axes);
 
 scene.add(OUTER_CUBE);
-// scene.add(INNER_CUBE);
-// scene.add(TORUS);
-// scene.add(SPHERE);
+scene.add(OUTER_TORUS);
+scene.add(INNER_CUBE);
+scene.add(INNER_TORUS);
+scene.add(SPHERE);
 
 // .
 // .
@@ -261,21 +293,25 @@ controls.autoRotate = true;
 function animate() {
   requestAnimationFrame(animate);
 
-  // OUTER_CUBE.rotation.x += 0.007;
-  // OUTER_CUBE.rotation.y += 0.007;
-  // OUTER_CUBE.rotation.z += 0.007;
+  OUTER_CUBE.rotation.x += 0.001;
+  OUTER_CUBE.rotation.y += 0.001;
+  OUTER_CUBE.rotation.z += 0.001;
 
-  // INNER_CUBE.rotation.x += 0.002;
-  // INNER_CUBE.rotation.y += 0.002;
-  // INNER_CUBE.rotation.z += 0.002;
+  OUTER_TORUS.rotation.x += 0.003;
+  OUTER_TORUS.rotation.y += 0.003;
+  OUTER_TORUS.rotation.z += 0.003;
 
-  // TORUS.rotation.x += 0.009;
-  // TORUS.rotation.y += 0.009;
-  // TORUS.rotation.z += 0.009;
+  INNER_CUBE.rotation.x += 0.005;
+  INNER_CUBE.rotation.y += 0.005;
+  INNER_CUBE.rotation.z += 0.005;
 
-  // SPHERE.rotation.x += 0.004;
-  // SPHERE.rotation.y += 0.004;
-  // SPHERE.rotation.z += 0.004;
+  INNER_TORUS.rotation.x += 0.007;
+  INNER_TORUS.rotation.y += 0.007;
+  INNER_TORUS.rotation.z += 0.007;
+
+  SPHERE.rotation.x += 0.009;
+  SPHERE.rotation.y += 0.009;
+  SPHERE.rotation.z += 0.009;
 
   controls.update();
 
