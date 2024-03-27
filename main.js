@@ -130,6 +130,51 @@ const OUTER_CUBE_MATERIAL = new THREE.MeshBasicMaterial({
 
 //
 
+// TETRAHEDRONS
+// Creating the connections to the other corners of the outer cube
+let outer_tetra = {
+  geometry: {
+    radius: 1, // was gonna break it up by abcd again but they are uniform
+    detail: 0,
+  },
+  material: {
+    color: {
+      a: 0x00bfff, // blue
+      b: 0xe74c3c, // red
+      c: 0x2ecc71, // green
+      d: 0xf4d03f, // yellow
+    },
+    wireframe: true,
+  },
+};
+
+const OUTER_TETRA_GEOMETRY = new THREE.TetrahedronGeometry(
+  outer_tetra?.geometry?.radius,
+  outer_tetra?.geometry?.detail,
+);
+
+const OUTER_TETRA_A_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_tetra?.material?.color?.a,
+  material: outer_tetra?.matieral?.wireframe,
+});
+
+const OUTER_TETRA_B_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_tetra?.material?.color?.b,
+  material: outer_tetra?.matieral?.wireframe,
+});
+
+const OUTER_TETRA_C_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_tetra?.material?.color?.c,
+  material: outer_tetra?.matieral?.wireframe,
+});
+
+const OUTER_TETRA_D_MATERIAL = new THREE.MeshBasicMaterial({
+  color: outer_tetra?.material?.color?.d,
+  material: outer_tetra?.matieral?.wireframe,
+});
+
+//
+
 // TORUS
 let outer_torus = {
   geometry: {
@@ -249,6 +294,10 @@ const SPHERE_MATERIAL = new THREE.MeshBasicMaterial({
 // G & M   C R E A T I O N
 
 const OUTER_CUBE = new THREE.Mesh(OUTER_CUBE_GEOMETRY, OUTER_CUBE_MATERIAL);
+const OUTER_TETRA_A = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_A_MATERIAL);
+const OUTER_TETRA_B = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_B_MATERIAL);
+const OUTER_TETRA_C = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_C_MATERIAL);
+const OUTER_TETRA_D = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_D_MATERIAL);
 const OUTER_TORUS = new THREE.Mesh(OUTER_TORUS_GEOMETRY, OUTER_TORUS_MATERIAL);
 const INNER_CUBE = new THREE.Mesh(INNER_CUBE_GEOMETRY, INNER_CUBE_MATERIAL);
 const INNER_TORUS = new THREE.Mesh(INNER_TORUS_GEOMETRY, INNER_TORUS_MATERIAL);
@@ -265,6 +314,10 @@ const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 scene.add(axes);
 
 scene.add(OUTER_CUBE);
+scene.add(OUTER_TETRA_A);
+scene.add(OUTER_TETRA_B);
+scene.add(OUTER_TETRA_C);
+scene.add(OUTER_TETRA_D);
 scene.add(OUTER_TORUS);
 scene.add(INNER_CUBE);
 scene.add(INNER_TORUS);
@@ -296,6 +349,22 @@ function animate() {
   OUTER_CUBE.rotation.x += 0.001;
   OUTER_CUBE.rotation.y += 0.001;
   OUTER_CUBE.rotation.z += 0.001;
+
+  OUTER_TETRA_A.rotation.x;
+  OUTER_TETRA_A.rotation.y;
+  OUTER_TETRA_A.rotation.z;
+
+  OUTER_TETRA_B.rotation.x;
+  OUTER_TETRA_B.rotation.y;
+  OUTER_TETRA_B.rotation.z;
+
+  OUTER_TETRA_C.rotation.x;
+  OUTER_TETRA_C.rotation.y;
+  OUTER_TETRA_C.rotation.z;
+
+  OUTER_TETRA_D.rotation.x;
+  OUTER_TETRA_D.rotation.y;
+  OUTER_TETRA_D.rotation.z;
 
   OUTER_TORUS.rotation.x += 0.003;
   OUTER_TORUS.rotation.y += 0.003;
