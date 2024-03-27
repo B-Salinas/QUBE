@@ -134,7 +134,12 @@ const OUTER_CUBE_MATERIAL = new THREE.MeshBasicMaterial({
 // Creating the connections to the other corners of the outer cube
 let outer_tetra = {
   geometry: {
-    radius: 1, // was gonna break it up by abcd again but they are uniform
+    radius: {
+      a: 1,
+      b: 2,
+      c: 3,
+      d: 4,
+    },
     detail: 0,
   },
   material: {
@@ -148,29 +153,38 @@ let outer_tetra = {
   },
 };
 
-const OUTER_TETRA_GEOMETRY = new THREE.TetrahedronGeometry(
-  outer_tetra?.geometry?.radius,
-  outer_tetra?.geometry?.detail,
+const OUTER_TETRA_A_GEOMETRY = new THREE.TetrahedronGeometry(
+  outer_tetra?.geometry?.radius?.a,
+  outer_tetra?.geometry?.detail
+);
+const OUTER_TETRA_B_GEOMETRY = new THREE.TetrahedronGeometry(
+  outer_tetra?.geometry?.radius?.b,
+  outer_tetra?.geometry?.detail
+);
+const OUTER_TETRA_C_GEOMETRY = new THREE.TetrahedronGeometry(
+  outer_tetra?.geometry?.radius?.c,
+  outer_tetra?.geometry?.detail
+);
+const OUTER_TETRA_D_GEOMETRY = new THREE.TetrahedronGeometry(
+  outer_tetra?.geometry?.radius?.d,
+  outer_tetra?.geometry?.detail
 );
 
 const OUTER_TETRA_A_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_tetra?.material?.color?.a,
-  material: outer_tetra?.matieral?.wireframe,
+  wireframe: outer_tetra?.material?.wireframe,
 });
-
 const OUTER_TETRA_B_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_tetra?.material?.color?.b,
-  material: outer_tetra?.matieral?.wireframe,
+  wireframe: outer_tetra?.material?.wireframe,
 });
-
 const OUTER_TETRA_C_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_tetra?.material?.color?.c,
-  material: outer_tetra?.matieral?.wireframe,
+  wireframe: outer_tetra?.material?.wireframe,
 });
-
 const OUTER_TETRA_D_MATERIAL = new THREE.MeshBasicMaterial({
   color: outer_tetra?.material?.color?.d,
-  material: outer_tetra?.matieral?.wireframe,
+  wireframe: outer_tetra?.material?.wireframe,
 });
 
 //
@@ -293,14 +307,31 @@ const SPHERE_MATERIAL = new THREE.MeshBasicMaterial({
 
 // G & M   C R E A T I O N
 
+// outer
 const OUTER_CUBE = new THREE.Mesh(OUTER_CUBE_GEOMETRY, OUTER_CUBE_MATERIAL);
-const OUTER_TETRA_A = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_A_MATERIAL);
-const OUTER_TETRA_B = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_B_MATERIAL);
-const OUTER_TETRA_C = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_C_MATERIAL);
-const OUTER_TETRA_D = new THREE.MESH(OUTER_TETRA_GEOMETRY, OUTER_TETRA_D_MATERIAL);
+const OUTER_TETRA_A = new THREE.Mesh(
+  OUTER_TETRA_A_GEOMETRY,
+  OUTER_TETRA_A_MATERIAL
+);
+const OUTER_TETRA_B = new THREE.Mesh(
+  OUTER_TETRA_B_GEOMETRY,
+  OUTER_TETRA_B_MATERIAL
+);
+const OUTER_TETRA_C = new THREE.Mesh(
+  OUTER_TETRA_C_GEOMETRY,
+  OUTER_TETRA_C_MATERIAL
+);
+const OUTER_TETRA_D = new THREE.Mesh(
+  OUTER_TETRA_D_GEOMETRY,
+  OUTER_TETRA_D_MATERIAL
+);
 const OUTER_TORUS = new THREE.Mesh(OUTER_TORUS_GEOMETRY, OUTER_TORUS_MATERIAL);
+
+// inner
 const INNER_CUBE = new THREE.Mesh(INNER_CUBE_GEOMETRY, INNER_CUBE_MATERIAL);
 const INNER_TORUS = new THREE.Mesh(INNER_TORUS_GEOMETRY, INNER_TORUS_MATERIAL);
+
+// center
 const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 
 // .
@@ -313,14 +344,19 @@ const SPHERE = new THREE.Mesh(SPHERE_GEOMETRY, SPHERE_MATERIAL);
 
 scene.add(axes);
 
+// outer
 scene.add(OUTER_CUBE);
 scene.add(OUTER_TETRA_A);
 scene.add(OUTER_TETRA_B);
 scene.add(OUTER_TETRA_C);
 scene.add(OUTER_TETRA_D);
 scene.add(OUTER_TORUS);
+
+// inner
 scene.add(INNER_CUBE);
 scene.add(INNER_TORUS);
+
+// center
 scene.add(SPHERE);
 
 // .
@@ -350,21 +386,21 @@ function animate() {
   OUTER_CUBE.rotation.y += 0.001;
   OUTER_CUBE.rotation.z += 0.001;
 
-  OUTER_TETRA_A.rotation.x;
-  OUTER_TETRA_A.rotation.y;
-  OUTER_TETRA_A.rotation.z;
+  OUTER_TETRA_A.rotation.x += 0.0005;
+  OUTER_TETRA_A.rotation.y += 0.0005;
+  OUTER_TETRA_A.rotation.z += 0.0005;
 
-  OUTER_TETRA_B.rotation.x;
-  OUTER_TETRA_B.rotation.y;
-  OUTER_TETRA_B.rotation.z;
+  OUTER_TETRA_B.rotation.x += 0.0006;
+  OUTER_TETRA_B.rotation.y += 0.0006;
+  OUTER_TETRA_B.rotation.z += 0.0006;
 
-  OUTER_TETRA_C.rotation.x;
-  OUTER_TETRA_C.rotation.y;
-  OUTER_TETRA_C.rotation.z;
+  OUTER_TETRA_C.rotation.x += 0.0007;
+  OUTER_TETRA_C.rotation.y += 0.0007;
+  OUTER_TETRA_C.rotation.z += 0.0007;
 
-  OUTER_TETRA_D.rotation.x;
-  OUTER_TETRA_D.rotation.y;
-  OUTER_TETRA_D.rotation.z;
+  OUTER_TETRA_D.rotation.x += 0.0008;
+  OUTER_TETRA_D.rotation.y += 0.0008;
+  OUTER_TETRA_D.rotation.z += 0.0008;
 
   OUTER_TORUS.rotation.x += 0.003;
   OUTER_TORUS.rotation.y += 0.003;
