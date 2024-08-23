@@ -20,6 +20,7 @@ if (!WebGL.isWebGLAvailable()) {
 //
 //
 
+// Set up the scene, camera, and renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -31,6 +32,7 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// Create the tesseract geometry
 const vertices = [
   [-1, -1, -1, 1],
   [1, -1, -1, 1],
@@ -139,6 +141,7 @@ const allEdges = [...edges, ...gridEdges];
 const geometry = new THREE.BufferGeometry();
 const material = new THREE.LineBasicMaterial({ color: 0xffffff });
 
+// Function to project 4D points to 3D
 function project4Dto3D(point, w = 2) {
   const scale = 1 / (w - point[3]);
   return new THREE.Vector3(
@@ -148,17 +151,21 @@ function project4Dto3D(point, w = 2) {
   );
 }
 
+// Function to update the tesseract's rotation
 function updateTesseract(time) {
-  const rotatedVertices = [...vertices, ...gridEdges.flat()].map((v) => {
+  const rotatedVertices = vertices.map((v) => {
     let [x, y, z, w] = v;
+
+    // Rotate in 4D
     const t = time * 0.001;
     const newX = x * Math.cos(t) - w * Math.sin(t);
     const newW = x * Math.sin(t) + w * Math.cos(t);
+
     return project4Dto3D([newX, y, z, newW]);
   });
 
   const positions = [];
-  allEdges.forEach((edge) => {
+  edges.forEach((edge) => {
     positions.push(
       rotatedVertices[edge[0]].x,
       rotatedVertices[edge[0]].y,
@@ -183,6 +190,7 @@ scene.add(tesseract);
 
 camera.position.z = 5;
 
+// Animation loop
 function animate(time) {
   requestAnimationFrame(animate);
   updateTesseract(time);
@@ -191,6 +199,7 @@ function animate(time) {
 
 animate();
 
+// Handle window resizing
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
