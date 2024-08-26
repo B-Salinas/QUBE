@@ -7,6 +7,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { TorusGeometry } from "three/src/geometries/TorusGeometry.js";
 import { MeshBasicMaterial } from "three/src/materials/MeshBasicMaterial.js";
 import { Mesh } from "three/src/objects/Mesh.js";
+import { ParametricGeometry } from "three/examples/jsm/geometries/ParametricGeometry.js";
 
 if (!WebGL.isWebGLAvailable()) {
   const warning = WebGL.getWebGLErrorMessage();
@@ -139,127 +140,75 @@ function project4Dto3D(point, w = 2) {
   );
 }
 
-function updateTesseract(time) {
-  const t = time * 0.001;
-  const rotationMatrix = new THREE.Matrix4()
-    .makeRotationY(t * 0.5)
-    .multiply(new THREE.Matrix4().makeRotationX(t * 0.3))
-    .multiply(new THREE.Matrix4().makeRotationZ(t * 0.2));
-
-  // 4D rotation
-  const rotation4D = new THREE.Matrix4()
-    .set(
-      Math.cos(t),
-      0,
-      -Math.sin(t),
-      0,
-      0,
-      1,
-      0,
-      0,
-      Math.sin(t),
-      0,
-      Math.cos(t),
-      0,
-      0,
-      0,
-      0,
-      1
-    )
-    .multiply(
-      new THREE.Matrix4().set(
-        1,
-        0,
-        0,
-        0,
-        0,
-        Math.cos(t * 0.7),
-        0,
-        -Math.sin(t * 0.7),
-        0,
-        0,
-        1,
-        0,
-        0,
-        Math.sin(t * 0.7),
-        0,
-        Math.cos(t * 0.7)
-      )
-    );
-
-  const vertices = createVertices(1); // Create vertices with size 1
-
-  const rotatedVertices = vertices.map((v) => {
-    const point4D = new THREE.Vector4(v[0], v[1], v[2], v[3]);
-    point4D.applyMatrix4(rotation4D); // Apply 4D rotation
-    point4D.applyMatrix4(rotationMatrix); // Apply 3D rotation
-    return project4Dto3D(point4D.toArray());
-  });
-
-  const positions = [];
-  const colors = [];
-  edges.forEach((edge) => {
-    positions.push(
-      rotatedVertices[edge[0]].x,
-      rotatedVertices[edge[0]].y,
-      rotatedVertices[edge[0]].z,
-      rotatedVertices[edge[1]].x,
-      rotatedVertices[edge[1]].y,
-      rotatedVertices[edge[1]].z
-    );
-    const color = materials[edge[2]].color;
-    colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
-  });
-
-  cubeGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3)
-  );
-  cubeGeometry.setAttribute(
-    "color",
-    new THREE.Float32BufferAttribute(colors, 3)
-  );
-  cubeGeometry.attributes.position.needsUpdate = true;
-  cubeGeometry.attributes.color.needsUpdate = true;
-
-  // Update torus position and rotation
-  const centerPoint = new THREE.Vector3()
-    .addVectors(rotatedVertices[0], rotatedVertices[15])
-    .multiplyScalar(0.5);
-  torus.position.copy(centerPoint);
-  torus.setRotationFromMatrix(rotationMatrix);
-
-  // Scale torus based on tesseract size
-  const scale = rotatedVertices[15].distanceTo(rotatedVertices[0]) / 2;
-  torus.scale.setScalar(scale);
-}
-
 // Add this function to create a Möbius strip geometry
-function createMobiusStrip(radius, width, segments) {
-  const geometry = new THREE.ParametricBufferGeometry((u, v, target) => {
-    u *= Math.PI * 2;
-    v = v * 2 - 1;
-    
-    const x = (radius + v * width * Math.cos(u / 2)) * Math.cos(u);
-    const y = (radius + v * width * Math.cos(u / 2)) * Math.sin(u);
-    const z = v * width * Math.sin(u / 2);
-    
-    target.set(x, y, z);
-  }, segments, segments);
-  
+function createMobiusStrip(radius, width, thickness, segments) {
+  const geometry = new ParametricGeometry(
+    (u, v, target) => {
+      u *= Math.PI * 2;
+      v = v * 2 - 1;
+
+      const t = v * thickness;
+      const x =
+        (radius + width * Math.cos(u / 2) + t * Math.cos(u / 2) * Math.cos(u)) *
+        Math.cos(u);
+      const y =
+        (radius + width * Math.cos(u / 2) + t * Math.cos(u / 2) * Math.cos(u)) *
+        Math.sin(u);
+      const z = width * Math.sin(u / 2) + t * Math.cos(u / 2) * Math.sin(u);
+
+      target.set(x, y, z);
+    },
+    segments,
+    segments
+  );
+
   return geometry;
 }
 
+// Custom shader material for the Möbius strip
+const mobiusMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    color: { value: new THREE.Color(0xffff00) },
+    time: { value: 0 },
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 color;
+    uniform float time;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vec3 light = normalize(vec3(sin(time), cos(time), 0.5));
+      float dProd = max(0.0, dot(vNormal, light));
+      vec3 shade = mix(color * 0.3, color, dProd);
+      gl_FragColor = vec4(shade, 1.0);
+    }
+  `,
+  side: THREE.DoubleSide,
+});
+
 // Create a Möbius strip
 const mobiusRadius = 0.7;
-const mobiusWidth = 0.1;
-const mobiusSegments = 100;
-const mobiusGeometry = createMobiusStrip(mobiusRadius, mobiusWidth, mobiusSegments);
-const mobiusMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true, side: THREE.DoubleSide });
+const mobiusWidth = 0.2;
+const mobiusThickness = 0.05;
+const mobiusSegments = 200;
+const mobiusGeometry = createMobiusStrip(
+  mobiusRadius,
+  mobiusWidth,
+  mobiusThickness,
+  mobiusSegments
+);
 const mobiusStrip = new THREE.Mesh(mobiusGeometry, mobiusMaterial);
 scene.add(mobiusStrip);
 
-// Modify the updateTesseract function
 function updateTesseract(time) {
   const t = time * 0.001;
   const rotationMatrix = new THREE.Matrix4()
@@ -343,26 +292,20 @@ function updateTesseract(time) {
   cubeGeometry.attributes.position.needsUpdate = true;
   cubeGeometry.attributes.color.needsUpdate = true;
 
-  // Update Möbius strip position, rotation, and scale
-  const centerPoint = new THREE.Vector3().addVectors(rotatedVertices[0], rotatedVertices[15]).multiplyScalar(0.5);
+  // Update Möbius strip position, rotation, scale, and shader
+  const centerPoint = new THREE.Vector3()
+    .addVectors(rotatedVertices[0], rotatedVertices[15])
+    .multiplyScalar(0.5);
   mobiusStrip.position.copy(centerPoint);
   mobiusStrip.setRotationFromMatrix(rotationMatrix);
 
   // Scale Möbius strip based on tesseract size
   const scale = rotatedVertices[15].distanceTo(rotatedVertices[0]) / 2;
   mobiusStrip.scale.setScalar(scale);
-}
 
-// Create a torus
-const torusRadius = 0.7; // Adjust this value to fit between inner and outer cubes
-const tubeRadius = 0.2;
-const torusGeometry = new TorusGeometry(torusRadius, tubeRadius, 16, 100);
-const torusMaterial = new MeshBasicMaterial({
-  color: 0xffff00,
-  wireframe: true,
-});
-const torus = new Mesh(torusGeometry, torusMaterial);
-scene.add(torus);
+  // Update shader time uniform
+  mobiusMaterial.uniforms.time.value = time * 0.001;
+}
 
 const tesseract = new THREE.LineSegments(cubeGeometry, cubeMaterial);
 scene.add(tesseract);
