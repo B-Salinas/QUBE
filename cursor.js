@@ -4,6 +4,10 @@ import WebGL from "three/addons/capabilities/WebGL.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+import { TorusGeometry } from 'three/src/geometries/TorusGeometry.js';
+import { MeshBasicMaterial } from 'three/src/materials/MeshBasicMaterial.js';
+import { Mesh } from 'three/src/objects/Mesh.js';
+
 if (!WebGL.isWebGLAvailable()) {
   const warning = WebGL.getWebGLErrorMessage();
   document.getElementById("container").appendChild(warning);
@@ -48,27 +52,44 @@ function createVertices(size) {
   ];
 }
 
-// Define edges for all 8 cubes
-const edges = [
-  // Cube 1 (0-7)
-  [0, 1, 0], [1, 2, 1], [2, 3, 0], [3, 0, 1],
-  [4, 5, 0], [5, 6, 1], [6, 7, 0], [7, 4, 1],
-  [0, 4, 2], [1, 5, 2], [2, 6, 2], [3, 7, 2],
-  // Cube 2 (8-15)
-  [8, 9, 0], [9, 10, 1], [10, 11, 0], [11, 8, 1],
-  [12, 13, 0], [13, 14, 1], [14, 15, 0], [15, 12, 1],
-  [8, 12, 2], [9, 13, 2], [10, 14, 2], [11, 15, 2],
-  // Connections between cubes
-  [0, 8, 3], [1, 9, 3], [2, 10, 3], [3, 11, 3],
-  [4, 12, 3], [5, 13, 3], [6, 14, 3], [7, 15, 3],
+// Define colors for each cube
+const cubeColors = [
+  0xff0000, // Red
+  0x00ff00, // Green
+  0x0000ff, // Blue
+  0xffff00, // Yellow
+  0xff00ff, // Magenta
+  0x00ffff, // Cyan
+  0xffa500, // Orange
+  0x800080, // Purple
+  0xffffff, // White (for the outer cube)
 ];
 
-// Replace the single material with an array of materials
-const materials = [
-  new THREE.LineBasicMaterial({ color: 0xff0000 }), // Red for X
-  new THREE.LineBasicMaterial({ color: 0x00ff00 }), // Green for Y
-  new THREE.LineBasicMaterial({ color: 0x0000ff }), // Blue for Z
-  new THREE.LineBasicMaterial({ color: 0xffffff }), // White for edges connecting inner and outer cubes
+// Create materials for each cube
+const materials = cubeColors.map(color => new THREE.LineBasicMaterial({ color }));
+
+// Define edges for all 8 cubes
+const edges = [
+  // Cube 0 (outer cube)
+  [0, 1, 0], [1, 2, 0], [2, 3, 0], [3, 0, 0],
+  [4, 5, 0], [5, 6, 0], [6, 7, 0], [7, 4, 0],
+  [0, 4, 0], [1, 5, 0], [2, 6, 0], [3, 7, 0],
+  // Cube 1
+  [0, 1, 1], [1, 9, 1], [9, 8, 1], [8, 0, 1],
+  // Cube 2
+  [1, 5, 2], [5, 13, 2], [13, 9, 2], [9, 1, 2],
+  // Cube 3
+  [5, 4, 3], [4, 12, 3], [12, 13, 3], [13, 5, 3],
+  // Cube 4
+  [4, 0, 4], [0, 8, 4], [8, 12, 4], [12, 4, 4],
+  // Cube 5
+  [2, 3, 5], [3, 11, 5], [11, 10, 5], [10, 2, 5],
+  // Cube 6
+  [3, 7, 6], [7, 15, 6], [15, 11, 6], [11, 3, 6],
+  // Cube 7
+  [7, 6, 7], [6, 14, 7], [14, 15, 7], [15, 7, 7],
+  // Cube 8
+  [6, 2, 8], [2, 10, 8], [10, 14, 8], [14, 6, 8],
 ];
 
 const cubeGeometry = new THREE.BufferGeometry();
@@ -92,11 +113,16 @@ function updateTesseract(time) {
 
   // 4D rotation
   const rotation4D = new THREE.Matrix4().set(
-    Math.cos(t), 0, 0, -Math.sin(t),
+    Math.cos(t), 0, -Math.sin(t), 0,
     0, 1, 0, 0,
+    Math.sin(t), 0, Math.cos(t), 0,
+    0, 0, 0, 1
+  ).multiply(new THREE.Matrix4().set(
+    1, 0, 0, 0,
+    0, Math.cos(t * 0.7), 0, -Math.sin(t * 0.7),
     0, 0, 1, 0,
-    Math.sin(t), 0, 0, Math.cos(t)
-  );
+    0, Math.sin(t * 0.7), 0, Math.cos(t * 0.7)
+  ));
 
   const vertices = createVertices(1); // Create vertices with size 1
 
@@ -128,6 +154,57 @@ function updateTesseract(time) {
   );
   cubeGeometry.attributes.position.needsUpdate = true;
   cubeGeometry.attributes.color.needsUpdate = true;
+}
+
+// Create a torus
+const torusRadius = 0.7; // Adjust this value to fit between inner and outer cubes
+const tubeRadius = 0.02;
+const torusGeometry = new TorusGeometry(torusRadius, tubeRadius, 16, 100);
+const torusMaterial = new MeshBasicMaterial({ color: 0xffff00, wireframe: true });
+const torus = new Mesh(torusGeometry, torusMaterial);
+scene.add(torus);
+
+// Modify the updateTesseract function
+function updateTesseract(time) {
+  const t = time * 0.001;
+  const rotationMatrix = new THREE.Matrix4()
+    .makeRotationY(t * 0.5)
+    .multiply(new THREE.Matrix4().makeRotationX(t * 0.3))
+    .multiply(new THREE.Matrix4().makeRotationZ(t * 0.2));
+
+  // 4D rotation
+  const rotation4D = new THREE.Matrix4().set(
+    Math.cos(t), 0, -Math.sin(t), 0,
+    0, 1, 0, 0,
+    Math.sin(t), 0, Math.cos(t), 0,
+    0, 0, 0, 1
+  ).multiply(new THREE.Matrix4().set(
+    1, 0, 0, 0,
+    0, Math.cos(t * 0.7), 0, -Math.sin(t * 0.7),
+    0, 0, 1, 0,
+    0, Math.sin(t * 0.7), 0, Math.cos(t * 0.7)
+  ));
+
+  const vertices = createVertices(1); // Create vertices with size 1
+
+  const rotatedVertices = vertices.map((v) => {
+    const point4D = new THREE.Vector4(v[0], v[1], v[2], v[3]);
+    point4D.applyMatrix4(rotation4D); // Apply 4D rotation
+    point4D.applyMatrix4(rotationMatrix); // Apply 3D rotation
+    return project4Dto3D(point4D.toArray());
+  });
+
+  // Update tesseract geometry
+  // ... (keep existing code for updating tesseract geometry)
+
+  // Update torus position and rotation
+  const centerPoint = new THREE.Vector3().addVectors(rotatedVertices[0], rotatedVertices[15]).multiplyScalar(0.5);
+  torus.position.copy(centerPoint);
+  torus.setRotationFromMatrix(rotationMatrix);
+
+  // Scale torus based on tesseract size
+  const scale = rotatedVertices[15].distanceTo(rotatedVertices[0]) / 2;
+  torus.scale.setScalar(scale);
 }
 
 const tesseract = new THREE.LineSegments(cubeGeometry, cubeMaterial);
