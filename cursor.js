@@ -26,26 +26,42 @@ document.body.appendChild(renderer.domElement);
 const maxSize = 1;
 const minSize = 0.3;
 
+// Modify the createVertices function to create all 16 vertices of a tesseract
 function createVertices(size) {
   return [
-    [-size, -size, -size, size],
-    [size, -size, -size, size],
-    [size, size, -size, size],
-    [-size, size, -size, size],
-    [-size, -size, size, size],
-    [size, -size, size, size],
-    [size, size, size, size],
-    [-size, size, size, size],
-    [-size, -size, -size, -size],
-    [size, -size, -size, -size],
-    [size, size, -size, -size],
-    [-size, size, -size, -size],
-    [-size, -size, size, -size],
-    [size, -size, size, -size],
-    [size, size, size, -size],
-    [-size, size, size, -size],
+    [-size, -size, -size, -size], // 0
+    [size, -size, -size, -size],  // 1
+    [size, size, -size, -size],   // 2
+    [-size, size, -size, -size],  // 3
+    [-size, -size, size, -size],  // 4
+    [size, -size, size, -size],   // 5
+    [size, size, size, -size],    // 6
+    [-size, size, size, -size],   // 7
+    [-size, -size, -size, size],  // 8
+    [size, -size, -size, size],   // 9
+    [size, size, -size, size],    // 10
+    [-size, size, -size, size],   // 11
+    [-size, -size, size, size],   // 12
+    [size, -size, size, size],    // 13
+    [size, size, size, size],     // 14
+    [-size, size, size, size],    // 15
   ];
 }
+
+// Define edges for all 8 cubes
+const edges = [
+  // Cube 1 (0-7)
+  [0, 1, 0], [1, 2, 1], [2, 3, 0], [3, 0, 1],
+  [4, 5, 0], [5, 6, 1], [6, 7, 0], [7, 4, 1],
+  [0, 4, 2], [1, 5, 2], [2, 6, 2], [3, 7, 2],
+  // Cube 2 (8-15)
+  [8, 9, 0], [9, 10, 1], [10, 11, 0], [11, 8, 1],
+  [12, 13, 0], [13, 14, 1], [14, 15, 0], [15, 12, 1],
+  [8, 12, 2], [9, 13, 2], [10, 14, 2], [11, 15, 2],
+  // Connections between cubes
+  [0, 8, 3], [1, 9, 3], [2, 10, 3], [3, 11, 3],
+  [4, 12, 3], [5, 13, 3], [6, 14, 3], [7, 15, 3],
+];
 
 // Replace the single material with an array of materials
 const materials = [
@@ -53,47 +69,6 @@ const materials = [
   new THREE.LineBasicMaterial({ color: 0x00ff00 }), // Green for Y
   new THREE.LineBasicMaterial({ color: 0x0000ff }), // Blue for Z
   new THREE.LineBasicMaterial({ color: 0xffffff }), // White for edges connecting inner and outer cubes
-];
-
-// Modify the edges array to include material index
-const edges = [
-  // Outer cube
-  [0, 1, 0],
-  [1, 2, 1],
-  [2, 3, 0],
-  [3, 0, 1], // Front face (X-Y plane)
-  [4, 5, 0],
-  [5, 6, 1],
-  [6, 7, 0],
-  [7, 4, 1], // Back face (X-Y plane)
-  [0, 4, 2],
-  [1, 5, 2],
-  [2, 6, 2],
-  [3, 7, 2], // Connecting edges (Z axis)
-
-  // Inner cube
-  [8, 9, 0],
-  [9, 10, 1],
-  [10, 11, 0],
-  [11, 8, 1], // Front face (X-Y plane)
-  [12, 13, 0],
-  [13, 14, 1],
-  [14, 15, 0],
-  [15, 12, 1], // Back face (X-Y plane)
-  [8, 12, 2],
-  [9, 13, 2],
-  [10, 14, 2],
-  [11, 15, 2], // Connecting edges (Z axis)
-
-  // Connecting outer to inner
-  [0, 8, 3],
-  [1, 9, 3],
-  [2, 10, 3],
-  [3, 11, 3], // Front connections
-  [4, 12, 3],
-  [5, 13, 3],
-  [6, 14, 3],
-  [7, 15, 3], // Back connections
 ];
 
 const cubeGeometry = new THREE.BufferGeometry();
@@ -115,17 +90,20 @@ function updateTesseract(time) {
     .multiply(new THREE.Matrix4().makeRotationX(t * 0.3))
     .multiply(new THREE.Matrix4().makeRotationZ(t * 0.2));
 
-  const outerSize = ((Math.sin(t) + 1) * (maxSize - minSize)) / 2 + minSize;
-  const innerSize =
-    ((Math.sin(t + Math.PI) + 1) * (maxSize - minSize)) / 2 + minSize;
+  // 4D rotation
+  const rotation4D = new THREE.Matrix4().set(
+    Math.cos(t), 0, 0, -Math.sin(t),
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    Math.sin(t), 0, 0, Math.cos(t)
+  );
 
-  const outerVertices = createVertices(outerSize);
-  const innerVertices = createVertices(innerSize);
-  const vertices = [...outerVertices, ...innerVertices];
+  const vertices = createVertices(1); // Create vertices with size 1
 
   const rotatedVertices = vertices.map((v) => {
     const point4D = new THREE.Vector4(v[0], v[1], v[2], v[3]);
-    point4D.applyMatrix4(rotationMatrix);
+    point4D.applyMatrix4(rotation4D); // Apply 4D rotation
+    point4D.applyMatrix4(rotationMatrix); // Apply 3D rotation
     return project4Dto3D(point4D.toArray());
   });
 
@@ -133,12 +111,8 @@ function updateTesseract(time) {
   const colors = [];
   edges.forEach((edge) => {
     positions.push(
-      rotatedVertices[edge[0]].x,
-      rotatedVertices[edge[0]].y,
-      rotatedVertices[edge[0]].z,
-      rotatedVertices[edge[1]].x,
-      rotatedVertices[edge[1]].y,
-      rotatedVertices[edge[1]].z
+      rotatedVertices[edge[0]].x, rotatedVertices[edge[0]].y, rotatedVertices[edge[0]].z,
+      rotatedVertices[edge[1]].x, rotatedVertices[edge[1]].y, rotatedVertices[edge[1]].z
     );
     const color = materials[edge[2]].color;
     colors.push(color.r, color.g, color.b, color.r, color.g, color.b);
