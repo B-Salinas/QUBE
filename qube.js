@@ -1,3 +1,12 @@
+// Written with Claude 3.5 and Cursor
+// By Bianca "B" Salinas
+// Created on Monday, August 26, 2024
+// Last updated on Wednesday, August 28, 2024
+
+// QUBE stands for Quaternion-based Unified Boundary Element
+// QUBE stands for Quantum U Bounded Energy ??
+
+
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
