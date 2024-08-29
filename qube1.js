@@ -8,14 +8,18 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
 console.log("qube.js is running");
 
-let scene, camera, renderer, controls, composer;
-let qube, superpositionLayer, singularity, dynamicDimensionality, interfaceLayer, ethicalFramework, temporalDimension, markovParticles;
+let scene, camera, renderer, controls;
+let qube,
+  superpositionLayer,
+  singularity,
+  dynamicDimensionality,
+  interfaceLayer,
+  ethicalFramework,
+  temporalDimension,
+  markovParticles;
 
 const colors = {
   x: new THREE.Color(0xff0000), // Red for X-axis
@@ -44,7 +48,6 @@ function init() {
     camera.position.z = 10;
 
     createQube();
-    composer = addGlowEffect(scene, camera, renderer);
 
     window.addEventListener("resize", onWindowResize, false);
     console.log("Initialization complete");
@@ -99,14 +102,24 @@ function createQube() {
 
   // Connect Haus and Qube at 8 vertices
   const hausCorners = [
-    [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
-    [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
+    [-1, -1, -1],
+    [1, -1, -1],
+    [1, 1, -1],
+    [-1, 1, -1],
+    [-1, -1, 1],
+    [1, -1, 1],
+    [1, 1, 1],
+    [-1, 1, 1],
   ];
 
   hausCorners.forEach((corner) => {
     vertices.push(
-      (corner[0] * hausSize) / 2, (corner[1] * hausSize) / 2, (corner[2] * hausSize) / 2,
-      (corner[0] * qubeSize) / 2, (corner[1] * qubeSize) / 2, (corner[2] * qubeSize) / 2
+      (corner[0] * hausSize) / 2,
+      (corner[1] * hausSize) / 2,
+      (corner[2] * hausSize) / 2,
+      (corner[0] * qubeSize) / 2,
+      (corner[1] * qubeSize) / 2,
+      (corner[2] * qubeSize) / 2
     );
 
     // Check if the line is strictly along one axis
@@ -116,25 +129,45 @@ function createQube() {
       if (corner[0] !== 0) primaryColor = colors.x;
       else if (corner[1] !== 0) primaryColor = colors.y;
       else primaryColor = colors.z;
-      colorAttributes.push(...primaryColor.toArray(), ...primaryColor.toArray());
+      colorAttributes.push(
+        ...primaryColor.toArray(),
+        ...primaryColor.toArray()
+      );
     } else {
       // The line is diagonal, so use white
-      colorAttributes.push(...colors.white.toArray(), ...colors.white.toArray());
+      colorAttributes.push(
+        ...colors.white.toArray(),
+        ...colors.white.toArray()
+      );
     }
   });
 
   // Create Haus grid
   const hausGridDivisions = 5; // 5x5x5 grid for Haus
   const hausGridGeometry = new THREE.BufferGeometry();
-  hausGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(hausSize, hausGridDivisions), 3));
-  const hausGridMaterial = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.3 });
+  hausGridGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(createGrid(hausSize, hausGridDivisions), 3)
+  );
+  const hausGridMaterial = new THREE.LineBasicMaterial({
+    color: 0x888888,
+    transparent: true,
+    opacity: 0.3,
+  });
   const hausGrid = new THREE.LineSegments(hausGridGeometry, hausGridMaterial);
 
   // Create Qube grid
   const qubeGridDivisions = 3; // 3x3x3 grid for Qube (adjust as needed)
   const qubeGridGeometry = new THREE.BufferGeometry();
-  qubeGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(qubeSize, qubeGridDivisions), 3));
-  const qubeGridMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+  qubeGridGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(createGrid(qubeSize, qubeGridDivisions), 3)
+  );
+  const qubeGridMaterial = new THREE.LineBasicMaterial({
+    color: 0xcccccc,
+    transparent: true,
+    opacity: 0.5,
+  });
   const qubeGrid = new THREE.LineSegments(qubeGridGeometry, qubeGridMaterial);
 
   // Create cognitive regions (condensed within Qube)
@@ -165,8 +198,14 @@ function createQube() {
   markovParticles = createMarkovParticles(qubeSize, 1000);
 
   // Create the main geometry
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorAttributes, 3));
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3)
+  );
+  geometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(colorAttributes, 3)
+  );
 
   qube = new THREE.Group();
   qube.add(new THREE.LineSegments(geometry, material));
@@ -182,10 +221,6 @@ function createQube() {
   qube.add(temporalDimension);
   qube.add(markovParticles);
   scene.add(qube);
-
-  const fractalHexagon = createFractalHexagon(5, 5);
-  qube.userData.fractalHexagon = fractalHexagon;
-  scene.add(fractalHexagon);
 }
 
 function createCube(
@@ -246,7 +281,10 @@ function createCube(
 // Add this function to create a 3D Menger Sponge fractal
 function createMengerSponge(size, iterations) {
   const geometry = new THREE.BoxGeometry(size, size, size);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    wireframe: true,
+  });
   const sponge = new THREE.Mesh(geometry, material);
 
   if (iterations > 0) {
@@ -270,8 +308,10 @@ function createMengerSponge(size, iterations) {
 // Modify createCognitiveRegions function
 function createCognitiveRegions(size) {
   const regions = new THREE.Group();
-  const regionColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
-  
+  const regionColors = [
+    0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff,
+  ];
+
   for (let i = 0; i < 6; i++) {
     const fractal = createMengerSponge(size / 4, 2);
     fractal.material.color.setHex(regionColors[i]);
@@ -284,7 +324,7 @@ function createCognitiveRegions(size) {
     );
     regions.add(fractal);
   }
-  
+
   return regions;
 }
 
@@ -306,8 +346,8 @@ function createSuperpositionLayer(size) {
     colors[i * 3 + 2] = Math.random();
   }
 
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
   return new THREE.Points(geometry, material);
 }
@@ -316,7 +356,7 @@ function createSingularity() {
   const geometry = new THREE.SphereGeometry(0.05, 32, 32);
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      time: { value: 0 }
+      time: { value: 0 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -337,7 +377,7 @@ function createSingularity() {
         gl_FragColor = vec4(h,l,1.0,1.0);
       }
     `,
-    transparent: true
+    transparent: true,
   });
   return new THREE.Mesh(geometry, material);
 }
@@ -350,15 +390,27 @@ function createInterconnectedNetworks(size) {
   function createRecursiveConnection(startPoint, endPoint, depth) {
     if (depth === 0) return;
 
-    const midPoint = new THREE.Vector3().addVectors(startPoint, endPoint).multiplyScalar(0.5);
-    midPoint.add(new THREE.Vector3(
-      (Math.random() - 0.5) * size * 0.2,
-      (Math.random() - 0.5) * size * 0.2,
-      (Math.random() - 0.5) * size * 0.2
-    ));
+    const midPoint = new THREE.Vector3()
+      .addVectors(startPoint, endPoint)
+      .multiplyScalar(0.5);
+    midPoint.add(
+      new THREE.Vector3(
+        (Math.random() - 0.5) * size * 0.2,
+        (Math.random() - 0.5) * size * 0.2,
+        (Math.random() - 0.5) * size * 0.2
+      )
+    );
 
-    const geometry = new THREE.BufferGeometry().setFromPoints([startPoint, midPoint, endPoint]);
-    const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 - (0.1 * (3 - depth)) });
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+      startPoint,
+      midPoint,
+      endPoint,
+    ]);
+    const material = new THREE.LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0.3 - 0.1 * (3 - depth),
+    });
     const line = new THREE.Line(geometry, material);
     network.add(line);
 
@@ -401,8 +453,8 @@ function createDynamicDimensionality(size) {
     colors[i * 3 + 2] = Math.random();
   }
 
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
   return new THREE.Points(geometry, material);
 }
@@ -412,7 +464,7 @@ function createInterfaceLayer(size) {
   const geometry = new THREE.PlaneGeometry(size, size, 256, 256);
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      time: { value: 0 }
+      time: { value: 0 },
     },
     vertexShader: `
       uniform float time;
@@ -452,7 +504,7 @@ function createInterfaceLayer(size) {
       }
     `,
     transparent: true,
-    side: THREE.DoubleSide
+    side: THREE.DoubleSide,
   });
   const plane = new THREE.Mesh(geometry, material);
   plane.position.z = size / 2;
@@ -462,20 +514,28 @@ function createInterfaceLayer(size) {
 function createEthicalFramework(size) {
   const geometry = new THREE.BoxGeometry(size, size, size);
   const edges = new THREE.EdgesGeometry(geometry);
-  const material = new THREE.LineBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.2 });
+  const material = new THREE.LineBasicMaterial({
+    color: 0x00ff00,
+    transparent: true,
+    opacity: 0.2,
+  });
   return new THREE.LineSegments(edges, material);
 }
 
 function createTemporalDimension(size) {
   const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(-size/2, 0, 0),
-    new THREE.Vector3(0, size/2, 0),
-    new THREE.Vector3(size/2, 0, 0),
-    new THREE.Vector3(0, -size/2, 0),
-    new THREE.Vector3(-size/2, 0, 0)
+    new THREE.Vector3(-size / 2, 0, 0),
+    new THREE.Vector3(0, size / 2, 0),
+    new THREE.Vector3(size / 2, 0, 0),
+    new THREE.Vector3(0, -size / 2, 0),
+    new THREE.Vector3(-size / 2, 0, 0),
   ]);
-  const geometry = new THREE.TubeGeometry(curve, 100, size/20, 8, true);
-  const material = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.3 });
+  const geometry = new THREE.TubeGeometry(curve, 100, size / 20, 8, true);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xffff00,
+    transparent: true,
+    opacity: 0.3,
+  });
   return new THREE.Mesh(geometry, material);
 }
 
@@ -499,76 +559,13 @@ function createMarkovParticles(size, particleCount) {
     colors[i * 3 + 2] = stateColor.b;
   }
 
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
   const particles = new THREE.Points(geometry, material);
   particles.userData.states = states;
 
   return particles;
-}
-
-function createFractalHexagon(size, depth) {
-  const group = new THREE.Group();
-
-  function createHexagon(radius, color) {
-    const shape = new THREE.Shape();
-    for (let i = 0; i < 6; i++) {
-      const angle = (i / 6) * Math.PI * 2;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      if (i === 0) shape.moveTo(x, y);
-      else shape.lineTo(x, y);
-    }
-    const geometry = new THREE.ShapeGeometry(shape);
-    const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7 });
-    return new THREE.Mesh(geometry, material);
-  }
-
-  function createLayer(radius, depth) {
-    const layerGroup = new THREE.Group();
-
-    if (depth <= 0) return layerGroup;
-
-    const color = new THREE.Color().setHSL(0.6 - depth * 0.1, 1, 0.5);
-    const hexagon = createHexagon(radius, color);
-    layerGroup.add(hexagon);
-
-    if (depth > 1) {
-      const childRadius = radius * 0.38;
-      for (let i = 0; i < 6; i++) {
-        const angle = (i / 6) * Math.PI * 2;
-        const x = Math.cos(angle) * radius * 0.5;
-        const y = Math.sin(angle) * radius * 0.5;
-        const childLayer = createLayer(childRadius, depth - 1);
-        childLayer.position.set(x, y, 0.01 * depth);
-        layerGroup.add(childLayer);
-      }
-    }
-
-    return layerGroup;
-  }
-
-  return createLayer(size, depth);
-}
-
-function addGlowEffect(scene, camera, renderer) {
-  const renderScene = new RenderPass(scene, camera);
-  const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.5,
-    0.4,
-    0.85
-  );
-  bloomPass.threshold = 0;
-  bloomPass.strength = 2;
-  bloomPass.radius = 0;
-
-  const composer = new EffectComposer(renderer);
-  composer.addPass(renderScene);
-  composer.addPass(bloomPass);
-
-  return composer;
 }
 
 let animationFrameId;
@@ -598,11 +595,11 @@ function animate() {
       positions[i] += Math.sin(time + i) * 0.001;
       positions[i + 1] += Math.cos(time + i) * 0.001;
       positions[i + 2] += Math.sin(time * 0.5 + i) * 0.001;
-      
+
       // Contain within Qube
       positions[i] = Math.max(Math.min(positions[i], 0.5), -0.5);
-      positions[i+1] = Math.max(Math.min(positions[i+1], 0.5), -0.5);
-      positions[i+2] = Math.max(Math.min(positions[i+2], 0.5), -0.5);
+      positions[i + 1] = Math.max(Math.min(positions[i + 1], 0.5), -0.5);
+      positions[i + 2] = Math.max(Math.min(positions[i + 2], 0.5), -0.5);
     }
     superpositionLayer.geometry.attributes.position.needsUpdate = true;
 
@@ -612,7 +609,8 @@ function animate() {
 
     // Animate dynamic dimensionality
     if (dynamicDimensionality) {
-      const positions = dynamicDimensionality.geometry.attributes.position.array;
+      const positions =
+        dynamicDimensionality.geometry.attributes.position.array;
       for (let i = 0; i < positions.length; i += 3) {
         positions[i] += Math.sin(time * 0.1 + i) * 0.001;
         positions[i + 1] += Math.cos(time * 0.1 + i) * 0.001;
@@ -639,7 +637,8 @@ function animate() {
       const states = markovParticles.userData.states;
 
       for (let i = 0; i < states.length; i++) {
-        if (Math.random() < 0.01) { // 1% chance to change state
+        if (Math.random() < 0.01) {
+          // 1% chance to change state
           states[i] = (states[i] + 1) % 3;
           const stateColor = new THREE.Color().setHSL(states[i] / 3, 1, 0.5);
           colors[i * 3] = stateColor.r;
@@ -655,25 +654,22 @@ function animate() {
 
         // Contain within Qube
         positions[i * 3] = Math.max(Math.min(positions[i * 3], 0.5), -0.5);
-        positions[i * 3 + 1] = Math.max(Math.min(positions[i * 3 + 1], 0.5), -0.5);
-        positions[i * 3 + 2] = Math.max(Math.min(positions[i * 3 + 2], 0.5), -0.5);
+        positions[i * 3 + 1] = Math.max(
+          Math.min(positions[i * 3 + 1], 0.5),
+          -0.5
+        );
+        positions[i * 3 + 2] = Math.max(
+          Math.min(positions[i * 3 + 2], 0.5),
+          -0.5
+        );
       }
 
       markovParticles.geometry.attributes.position.needsUpdate = true;
       markovParticles.geometry.attributes.color.needsUpdate = true;
     }
-
-    // Rotate the fractal hexagon
-    if (qube.userData.fractalHexagon) {
-      qube.userData.fractalHexagon.rotation.z += 0.001;
-    }
   }
 
-  if (composer) {
-    composer.render();
-  } else {
-    renderer.render(scene, camera);
-  }
+  renderer.render(scene, camera);
 
   // Safeguard against infinite recursion
   if (time > 600) {
@@ -687,9 +683,6 @@ function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  if (composer) {
-    composer.setSize(window.innerWidth, window.innerHeight);
-  }
 }
 
 try {
