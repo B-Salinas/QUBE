@@ -6,7 +6,6 @@
 // QUBE stands for Quaternion-based Unified Boundary Element
 // QUBE stands for Quantum U Bounded Energy ??
 
-
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
@@ -15,12 +14,14 @@ console.log("qube.js is running");
 let scene, camera, renderer, controls;
 let qube;
 
-const colors = [
-  new THREE.Color(0xffffff), // White
-  new THREE.Color(0xff0000), // Red
-  new THREE.Color(0x0000ff), // Blue
-  new THREE.Color(0x00ff00), // Green
-];
+const colors = {
+  x: new THREE.Color(0xff0000), // Red for X-axis
+  y: new THREE.Color(0x00ff00), // Green for Y-axis
+  z: new THREE.Color(0x0000ff), // Blue for Z-axis
+  white: new THREE.Color(0xffffff), // White for diagonal lines
+};
+
+const PHI = (1 + Math.sqrt(5)) / 2; // Golden ratio, approximately 1.618033988749895
 
 function init() {
   console.log("Initializing...");
@@ -48,6 +49,34 @@ function init() {
   }
 }
 
+function createGrid(size, divisions) {
+  const vertices = [];
+  const step = size / divisions;
+
+  // Create grid lines
+  for (let i = 0; i <= divisions; i++) {
+    const pos = (i * step) - (size / 2);
+
+    // X-axis lines
+    vertices.push(-size/2, pos, -size/2, size/2, pos, -size/2);
+    vertices.push(-size/2, pos, size/2, size/2, pos, size/2);
+    vertices.push(-size/2, -size/2, pos, -size/2, size/2, pos);
+    vertices.push(size/2, -size/2, pos, size/2, size/2, pos);
+
+    // Y-axis lines
+    vertices.push(pos, -size/2, -size/2, pos, size/2, -size/2);
+    vertices.push(pos, -size/2, size/2, pos, size/2, size/2);
+
+    // Z-axis lines (added)
+    vertices.push(-size/2, pos, -size/2, -size/2, pos, size/2);
+    vertices.push(size/2, pos, -size/2, size/2, pos, size/2);
+    vertices.push(pos, -size/2, -size/2, pos, -size/2, size/2);
+    vertices.push(pos, size/2, -size/2, pos, size/2, size/2);
+  }
+
+  return new Float32Array(vertices);
+}
+
 function createQube() {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.LineBasicMaterial({ vertexColors: true });
@@ -55,20 +84,33 @@ function createQube() {
   const vertices = [];
   const colorAttributes = [];
 
-  // Create 8 inner tesseracts
-  for (let i = 0; i < 8; i++) {
-    const x = i & 1 ? 0.5 : -0.5;
-    const y = i & 2 ? 0.5 : -0.5;
-    const z = i & 4 ? 0.5 : -0.5;
-
-    createMiniTesseract(x, y, z, 0.4, vertices, colorAttributes);
-  }
+  const qubeSize = 1; // Base size for the inner cube (Qube)
+  const hausSize = qubeSize * PHI; // Size of the outer cube (Haus)
 
   // Create central cube (Qube)
-  createCube(0, 0, 0, 1, vertices, colorAttributes, false, true);
+  createCube(0, 0, 0, qubeSize, vertices, colorAttributes, false, true);
 
   // Create outer cube (Haus)
-  createCube(0, 0, 0, 2, vertices, colorAttributes, true);
+  createCube(0, 0, 0, hausSize, vertices, colorAttributes, true);
+
+  // Extend XYZ lines from Qube to Haus
+  const extendedLines = [
+    // X-axis (red)
+    [-qubeSize/2, 0, 0, -hausSize/2, 0, 0],
+    [qubeSize/2, 0, 0, hausSize/2, 0, 0],
+    // Y-axis (green)
+    [0, -qubeSize/2, 0, 0, -hausSize/2, 0],
+    [0, qubeSize/2, 0, 0, hausSize/2, 0],
+    // Z-axis (blue)
+    [0, 0, -qubeSize/2, 0, 0, -hausSize/2],
+    [0, 0, qubeSize/2, 0, 0, hausSize/2]
+  ];
+
+  extendedLines.forEach((line, index) => {
+    vertices.push(...line);
+    const color = index < 2 ? colors.x : (index < 4 ? colors.y : colors.z);
+    colorAttributes.push(...color.toArray(), ...color.toArray());
+  });
 
   // Connect Haus and Qube at 8 vertices
   const hausCorners = [
@@ -82,69 +124,59 @@ function createQube() {
     [-1, 1, 1],
   ];
 
-  hausCorners.forEach((corner, index) => {
+  hausCorners.forEach((corner) => {
     vertices.push(
-      corner[0],
-      corner[1],
-      corner[2],
-      corner[0] * 0.5,
-      corner[1] * 0.5,
-      corner[2] * 0.5
+      (corner[0] * hausSize) / 2,
+      (corner[1] * hausSize) / 2,
+      (corner[2] * hausSize) / 2,
+      (corner[0] * qubeSize) / 2,
+      (corner[1] * qubeSize) / 2,
+      (corner[2] * qubeSize) / 2
     );
-    colorAttributes.push(...colors[0].toArray(), ...colors[0].toArray());
+
+    // Check if the line is strictly along one axis
+    if (corner.filter((coord) => coord !== 0).length === 1) {
+      // The line is along a single axis
+      let primaryColor;
+      if (corner[0] !== 0) primaryColor = colors.x;
+      else if (corner[1] !== 0) primaryColor = colors.y;
+      else primaryColor = colors.z;
+      colorAttributes.push(
+        ...primaryColor.toArray(),
+        ...primaryColor.toArray()
+      );
+    } else {
+      // The line is diagonal, so use white
+      colorAttributes.push(
+        ...colors.white.toArray(),
+        ...colors.white.toArray()
+      );
+    }
   });
 
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(vertices, 3)
-  );
-  geometry.setAttribute(
-    "color",
-    new THREE.Float32BufferAttribute(colorAttributes, 3)
-  );
+  // Create Haus grid
+  const hausGridDivisions = 5; // 5x5x5 grid for Haus
+  const hausGridGeometry = new THREE.BufferGeometry();
+  hausGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(hausSize, hausGridDivisions), 3));
+  const hausGridMaterial = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.3 });
+  const hausGrid = new THREE.LineSegments(hausGridGeometry, hausGridMaterial);
 
-  qube = new THREE.LineSegments(geometry, material);
+  // Create Qube grid
+  const qubeGridDivisions = 3; // 3x3x3 grid for Qube (adjust as needed)
+  const qubeGridGeometry = new THREE.BufferGeometry();
+  qubeGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(qubeSize, qubeGridDivisions), 3));
+  const qubeGridMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+  const qubeGrid = new THREE.LineSegments(qubeGridGeometry, qubeGridMaterial);
+
+  // Create the main geometry
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorAttributes, 3));
+
+  qube = new THREE.Group();
+  qube.add(new THREE.LineSegments(geometry, material));
+  qube.add(hausGrid);
+  qube.add(qubeGrid);
   scene.add(qube);
-}
-
-function createMiniTesseract(x, y, z, size, vertices, colorAttributes) {
-  // Create outer cube of mini-tesseract
-  createCube(x, y, z, size, vertices, colorAttributes);
-
-  // Create inner cube of mini-tesseract
-  const innerSize = size * 0.5;
-  createCube(x, y, z, innerSize, vertices, colorAttributes, false, true);
-
-  // Create connecting lines between inner and outer cubes
-  const halfSize = size / 2;
-  const halfInnerSize = innerSize / 2;
-  const corners = [
-    [-1, -1, -1],
-    [1, -1, -1],
-    [1, 1, -1],
-    [-1, 1, -1],
-    [-1, -1, 1],
-    [1, -1, 1],
-    [1, 1, 1],
-    [-1, 1, 1],
-  ];
-
-  corners.forEach((corner, index) => {
-    vertices.push(
-      x + corner[0] * halfSize,
-      y + corner[1] * halfSize,
-      z + corner[2] * halfSize,
-      x + corner[0] * halfInnerSize,
-      y + corner[1] * halfInnerSize,
-      z + corner[2] * halfInnerSize
-    );
-
-    const colorIndex = index % colors.length;
-    colorAttributes.push(
-      ...colors[colorIndex].toArray(),
-      ...colors[colorIndex].toArray()
-    );
-  });
 }
 
 function createCube(
@@ -154,65 +186,52 @@ function createCube(
   size,
   vertices,
   colorAttributes,
-  isOuterCube = false,
-  isCentralCube = false,
-  isInnermostCube = false
+  isHaus = false,
+  isQube = false
 ) {
   const halfSize = size / 2;
   const corners = [
-    [-1, -1, -1],
-    [1, -1, -1],
-    [1, 1, -1],
-    [-1, 1, -1],
-    [-1, -1, 1],
-    [1, -1, 1],
-    [1, 1, 1],
-    [-1, 1, 1],
+    [-halfSize, -halfSize, -halfSize],
+    [halfSize, -halfSize, -halfSize],
+    [halfSize, halfSize, -halfSize],
+    [-halfSize, halfSize, -halfSize],
+    [-halfSize, -halfSize, halfSize],
+    [halfSize, -halfSize, halfSize],
+    [halfSize, halfSize, halfSize],
+    [-halfSize, halfSize, halfSize],
   ];
 
-  const edges = [
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 0], // Bottom face
-    [4, 5],
-    [5, 6],
-    [6, 7],
-    [7, 4], // Top face
-    [0, 4],
-    [1, 5],
-    [2, 6],
-    [3, 7], // Connecting edges
-  ];
-
-  edges.forEach(([a, b], index) => {
+  // Function to add an edge with appropriate color
+  function addEdge(start, end, axisColor) {
     vertices.push(
-      x + corners[a][0] * halfSize,
-      y + corners[a][1] * halfSize,
-      z + corners[a][2] * halfSize,
-      x + corners[b][0] * halfSize,
-      y + corners[b][1] * halfSize,
-      z + corners[b][2] * halfSize
+      x + corners[start][0],
+      y + corners[start][1],
+      z + corners[start][2],
+      x + corners[end][0],
+      y + corners[end][1],
+      z + corners[end][2]
     );
+    colorAttributes.push(...axisColor.toArray(), ...axisColor.toArray());
+  }
 
-    let colorIndex;
-    if (isOuterCube) {
-      // For outer cube: X = Red, Y = Green, Z = Blue
-      if (index < 4) colorIndex = 1; // Red for X (bottom face)
-      else if (index < 8) colorIndex = 2; // Green for Y (top face)
-      else colorIndex = 3; // Blue for Z (connecting edges)
-    } else if (isCentralCube) {
-      colorIndex = 0; // White for central cube
-    } else if (isInnermostCube) {
-      colorIndex = 1; // Red for innermost cube
-    } else {
-      colorIndex = index % colors.length;
-    }
-    colorAttributes.push(
-      ...colors[colorIndex].toArray(),
-      ...colors[colorIndex].toArray()
-    );
-  });
+  // Add edges with colors based on their orientation
+  // X-axis edges (red)
+  addEdge(0, 1, colors.x);
+  addEdge(2, 3, colors.x);
+  addEdge(4, 5, colors.x);
+  addEdge(6, 7, colors.x);
+
+  // Y-axis edges (green)
+  addEdge(0, 3, colors.y);
+  addEdge(1, 2, colors.y);
+  addEdge(4, 7, colors.y);
+  addEdge(5, 6, colors.y);
+
+  // Z-axis edges (blue)
+  addEdge(0, 4, colors.z);
+  addEdge(1, 5, colors.z);
+  addEdge(2, 6, colors.z);
+  addEdge(3, 7, colors.z);
 }
 
 let animationFrameId;
@@ -226,8 +245,6 @@ function animate() {
     // Rotate the entire structure
     qube.rotation.x = Math.sin(time * 0.5) * 0.5;
     qube.rotation.y = Math.cos(time * 0.4) * 0.5;
-
-    // No pulsing animation, so we don't need to modify vertices
   }
 
   renderer.render(scene, camera);
