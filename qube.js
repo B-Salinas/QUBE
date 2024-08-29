@@ -55,23 +55,23 @@ function createGrid(size, divisions) {
 
   // Create grid lines
   for (let i = 0; i <= divisions; i++) {
-    const pos = (i * step) - (size / 2);
+    const pos = i * step - size / 2;
 
     // X-axis lines
-    vertices.push(-size/2, pos, -size/2, size/2, pos, -size/2);
-    vertices.push(-size/2, pos, size/2, size/2, pos, size/2);
-    vertices.push(-size/2, -size/2, pos, -size/2, size/2, pos);
-    vertices.push(size/2, -size/2, pos, size/2, size/2, pos);
+    vertices.push(-size / 2, pos, -size / 2, size / 2, pos, -size / 2);
+    vertices.push(-size / 2, pos, size / 2, size / 2, pos, size / 2);
+    vertices.push(-size / 2, -size / 2, pos, -size / 2, size / 2, pos);
+    vertices.push(size / 2, -size / 2, pos, size / 2, size / 2, pos);
 
     // Y-axis lines
-    vertices.push(pos, -size/2, -size/2, pos, size/2, -size/2);
-    vertices.push(pos, -size/2, size/2, pos, size/2, size/2);
+    vertices.push(pos, -size / 2, -size / 2, pos, size / 2, -size / 2);
+    vertices.push(pos, -size / 2, size / 2, pos, size / 2, size / 2);
 
     // Z-axis lines (added)
-    vertices.push(-size/2, pos, -size/2, -size/2, pos, size/2);
-    vertices.push(size/2, pos, -size/2, size/2, pos, size/2);
-    vertices.push(pos, -size/2, -size/2, pos, -size/2, size/2);
-    vertices.push(pos, size/2, -size/2, pos, size/2, size/2);
+    vertices.push(-size / 2, pos, -size / 2, -size / 2, pos, size / 2);
+    vertices.push(size / 2, pos, -size / 2, size / 2, pos, size / 2);
+    vertices.push(pos, -size / 2, -size / 2, pos, -size / 2, size / 2);
+    vertices.push(pos, size / 2, -size / 2, pos, size / 2, size / 2);
   }
 
   return new Float32Array(vertices);
@@ -96,19 +96,19 @@ function createQube() {
   // Extend XYZ lines from Qube to Haus
   const extendedLines = [
     // X-axis (red)
-    [-qubeSize/2, 0, 0, -hausSize/2, 0, 0],
-    [qubeSize/2, 0, 0, hausSize/2, 0, 0],
+    [-qubeSize / 2, 0, 0, -hausSize / 2, 0, 0],
+    [qubeSize / 2, 0, 0, hausSize / 2, 0, 0],
     // Y-axis (green)
-    [0, -qubeSize/2, 0, 0, -hausSize/2, 0],
-    [0, qubeSize/2, 0, 0, hausSize/2, 0],
+    [0, -qubeSize / 2, 0, 0, -hausSize / 2, 0],
+    [0, qubeSize / 2, 0, 0, hausSize / 2, 0],
     // Z-axis (blue)
-    [0, 0, -qubeSize/2, 0, 0, -hausSize/2],
-    [0, 0, qubeSize/2, 0, 0, hausSize/2]
+    [0, 0, -qubeSize / 2, 0, 0, -hausSize / 2],
+    [0, 0, qubeSize / 2, 0, 0, hausSize / 2],
   ];
 
   extendedLines.forEach((line, index) => {
     vertices.push(...line);
-    const color = index < 2 ? colors.x : (index < 4 ? colors.y : colors.z);
+    const color = index < 2 ? colors.x : index < 4 ? colors.y : colors.z;
     colorAttributes.push(...color.toArray(), ...color.toArray());
   });
 
@@ -157,20 +157,40 @@ function createQube() {
   // Create Haus grid
   const hausGridDivisions = 5; // 5x5x5 grid for Haus
   const hausGridGeometry = new THREE.BufferGeometry();
-  hausGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(hausSize, hausGridDivisions), 3));
-  const hausGridMaterial = new THREE.LineBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.3 });
+  hausGridGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(createGrid(hausSize, hausGridDivisions), 3)
+  );
+  const hausGridMaterial = new THREE.LineBasicMaterial({
+    color: 0x888888,
+    transparent: true,
+    opacity: 0.3,
+  });
   const hausGrid = new THREE.LineSegments(hausGridGeometry, hausGridMaterial);
 
   // Create Qube grid
   const qubeGridDivisions = 3; // 3x3x3 grid for Qube (adjust as needed)
   const qubeGridGeometry = new THREE.BufferGeometry();
-  qubeGridGeometry.setAttribute('position', new THREE.BufferAttribute(createGrid(qubeSize, qubeGridDivisions), 3));
-  const qubeGridMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.5 });
+  qubeGridGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(createGrid(qubeSize, qubeGridDivisions), 3)
+  );
+  const qubeGridMaterial = new THREE.LineBasicMaterial({
+    color: 0xcccccc,
+    transparent: true,
+    opacity: 0.5,
+  });
   const qubeGrid = new THREE.LineSegments(qubeGridGeometry, qubeGridMaterial);
 
   // Create the main geometry
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colorAttributes, 3));
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(vertices, 3)
+  );
+  geometry.setAttribute(
+    "color",
+    new THREE.Float32BufferAttribute(colorAttributes, 3)
+  );
 
   qube = new THREE.Group();
   qube.add(new THREE.LineSegments(geometry, material));
