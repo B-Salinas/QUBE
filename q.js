@@ -12,13 +12,13 @@ document.body.appendChild(renderer.domElement);
 // Setup
 const gridSize = 6;
 const cubeSize = 0.5;
-const innerCubeScale = 0.5; // Reduced from 0.65 to 0.5 (50%)
+const innerCubeScale = 0.5; // 50% size of outer cube
 const spacing = 0.7;
 const offset = (gridSize - 1) * spacing / 2;
 
-// Create materials for planes
+// Very transparent materials for outer cubes
 const planeMaterials = {
-    xPlane: new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true, opacity: 0.1 }), // Much more transparent
+    xPlane: new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true, opacity: 0.1 }),
     yPlane: new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }),
     zPlane: new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true, opacity: 0.1 })
 };
@@ -29,7 +29,6 @@ const innerCubeGeometry = new THREE.BoxGeometry(cubeSize * innerCubeScale, cubeS
 const cubeParent = new THREE.Object3D();
 scene.add(cubeParent);
 
-// Store references to inner cubes
 const innerCubes = [];
 
 function getColorFromPosition(nx, ny, nz) {
@@ -59,13 +58,13 @@ for (let x = 0; x < gridSize; x++) {
                 z * spacing - offset
             );
 
-            // Outer cube with increased transparency
+            // Very transparent outer cube
             let outerMaterial;
             if (x === 0 && y === 0 && z === 0) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: 0x000000,
                     transparent: true,
-                    opacity: 0.1  // Much more transparent
+                    opacity: 0.1
                 });
             } else if (x === gridSize - 1 && y === gridSize - 1 && z === gridSize - 1) {
                 outerMaterial = new THREE.MeshPhongMaterial({
@@ -101,12 +100,12 @@ for (let x = 0; x < gridSize; x++) {
                 Math.pow(z - centerZ, 2)
             ) / (Math.sqrt(3) * gridSize / 2);
 
-            // Create inner cube with solid material
+            // Create inner cube with initial material
             const innerMaterial = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(1, 0, 0),  // Start with red for visibility
-                transparent: false,  // Make solid
+                color: new THREE.Color(1, 1, 1),
+                transparent: true,
                 shininess: 100,
-                emissive: new THREE.Color(0.5, 0, 0)  // Add strong emissive
+                emissive: new THREE.Color(0.2, 0.2, 0.2)
             });
 
             const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
@@ -125,10 +124,10 @@ for (let x = 0; x < gridSize; x++) {
 }
 
 // Enhanced lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.0); // Increased intensity
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Increased intensity
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
 directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
@@ -136,20 +135,19 @@ scene.add(directionalLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-// Position camera closer
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-// Animation
+// Animation parameters
 const rotationSpeed = 0.003;
 const innerRotationSpeed = 0.00055;
 const colorSpeed = 0.001;
 let colorPhase = 0;
 
 function getPulseOffset(distance, phase) {
-    const pulseFreq = 1.0; // Slower frequency
-    const pulseAmplitude = 1.0; // Stronger amplitude
-    const centerEmphasis = Math.pow(1 - distance, 2.5); // Sharper center focus
+    const pulseFreq = 1.0;
+    const pulseAmplitude = 1.0;
+    const centerEmphasis = Math.pow(1 - distance, 2.5);
     const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 2);
     return wave * pulseAmplitude * centerEmphasis;
 }
@@ -163,35 +161,29 @@ function animate() {
     colorPhase = (colorPhase + colorSpeed) % 1;
     
     innerCubes.forEach(cube => {
-        // Enhanced center-focused effect
-        const distanceFromCenter = cube.distanceFromCenter;
-        
-        // Calculate pulse with stronger center emphasis
-        const pulseOffset = getPulseOffset(distanceFromCenter, colorPhase);
+        const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
         // Get base chroma color
         const chromaColor = hslToColor(adjustedPhase, 1, 0.5);
         
         // Create white-to-chroma blend based on distance
-        const centerIntensity = Math.pow(1 - distanceFromCenter, 3); // Sharper falloff
+        const centerIntensity = Math.pow(1 - cube.distanceFromCenter, 3);
         
-        // Blend between white and chroma color
+        // Blend colors
         const color = new THREE.Color(
-            1 - (1 - chromaColor.r) * centerIntensity,  // More white at center
+            1 - (1 - chromaColor.r) * centerIntensity,
             1 - (1 - chromaColor.g) * centerIntensity,
             1 - (1 - chromaColor.b) * centerIntensity
         );
         
-        // Opacity falls off towards edges
-        const opacity = 0.2 + (1 - distanceFromCenter) * 0.8; // Ranges from 0.2 to 1.0
+        // Set opacity based on distance
+        const opacity = 0.3 + (1 - cube.distanceFromCenter) * 0.7;
         cube.material.transparent = true;
         cube.material.opacity = opacity;
         
-        // Enhanced center glow
-        const emissiveStrength = Math.pow(1 - distanceFromCenter, 2) * 0.7; // Stronger glow
-        
-        // Apply final materials
+        // Set emissive glow
+        const emissiveStrength = Math.pow(1 - cube.distanceFromCenter, 2) * 0.7;
         cube.material.color = color;
         cube.material.emissive.setRGB(
             color.r * emissiveStrength,
@@ -199,7 +191,7 @@ function animate() {
             color.b * emissiveStrength
         );
         
-        // Slightly slower rotation for more emphasis on colors
+        // Rotate inner cube
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
