@@ -136,7 +136,7 @@ scene.add(directionalLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-camera.position.set(8, 8, 8); // Moved camera back for larger grid
+camera.position.set(6, 6, 6); // Moved camera back for larger grid
 camera.lookAt(0, 0, 0);
 
 // Animation
@@ -166,23 +166,23 @@ function animate() {
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Calculate base color - start with white and blend with chroma
+        // Enhance visibility of inner cubes
         const chromaColor = hslToColor(adjustedPhase, 1, 0.5);
-        const centerStrength = Math.pow(1 - cube.distanceFromCenter, 3); // Sharper falloff for color
+        const centerStrength = Math.pow(1 - cube.distanceFromCenter, 2); // Reduced power for more gradual falloff
         
-        // Blend between white and chroma color based on distance
+        // Blend colors with higher minimum color values
         const color = new THREE.Color(
-            1 - (1 - chromaColor.r) * centerStrength,
-            1 - (1 - chromaColor.g) * centerStrength,
-            1 - (1 - chromaColor.b) * centerStrength
+            0.3 + (1 - chromaColor.r) * centerStrength * 0.7,
+            0.3 + (1 - chromaColor.g) * centerStrength * 0.7,
+            0.3 + (1 - chromaColor.b) * centerStrength * 0.7
         );
         
-        // Calculate opacity - more transparent further from center
-        const opacity = Math.pow(1 - cube.distanceFromCenter, 1.5); // Adjust power for desired falloff
-        cube.material.opacity = 0.2 + opacity * 0.8; // Ensure minimum visibility
+        // Adjust opacity range to keep inner cubes more visible
+        const opacity = Math.pow(1 - cube.distanceFromCenter, 1.2); // Reduced power for more gradual transparency
+        cube.material.opacity = 0.4 + opacity * 0.6; // Increased minimum opacity
         
-        // Enhanced emissive effect for center
-        const emissiveIntensity = 0.3 * opacity;
+        // Enhance emissive effect
+        const emissiveIntensity = 0.4 * opacity + 0.1; // Added minimum emissive
         cube.material.color = color;
         cube.material.emissive.setRGB(
             color.r * emissiveIntensity,
@@ -197,6 +197,7 @@ function animate() {
     controls.update();
     renderer.render(scene, camera);
 }
+
 
 window.addEventListener('resize', onWindowResize, false);
 
