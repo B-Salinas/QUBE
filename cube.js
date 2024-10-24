@@ -16,10 +16,10 @@ const SCALE_FACTOR = 0.5;
 
 // Color mapping for each level
 const LEVEL_COLORS = {
-    1: 0xffffff,  // White
-    2: 0xff0000,  // Red
-    3: 0x0000ff,  // Blue
-    4: 0x00ff00   // Green
+    1: 0xffffff,  // Pure white
+    2: 0xcccccc,  // Light gray
+    3: 0x999999,  // Medium gray
+    4: 0x666666   // Darker gray
 };
 
 // Create a container for the entire structure
