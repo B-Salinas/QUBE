@@ -6,7 +6,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000); // Black background
+renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Setup
@@ -17,9 +17,9 @@ const offset = (gridSize - 1) * spacing / 2;
 
 // Create materials for planes
 const planeMaterials = {
-    xPlane: new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.3 }),
-    yPlane: new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 }),
-    zPlane: new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3 })
+    xPlane: new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true, opacity: 0.3 }),
+    yPlane: new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 }),
+    zPlane: new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3 })
 };
 
 const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
@@ -34,25 +34,47 @@ for (let x = 0; x < gridSize; x++) {
         for (let z = 0; z < gridSize; z++) {
             let material;
             
-            // Color based on position
-            if (x === 0) {
+            // Normalize coordinates to [-1, 1] range
+            const nx = (x / (gridSize - 1)) * 2 - 1;
+            const ny = (y / (gridSize - 1)) * 2 - 1;
+            const nz = (z / (gridSize - 1)) * 2 - 1;
+
+            if (x === 0 && y === 0 && z === 0) {
+                // Black cube at origin
+                material = new THREE.MeshPhongMaterial({
+                    color: 0x000000,
+                    shininess: 70,
+                    transparent: true,
+                    opacity: 0.9
+                });
+            } else if (x === gridSize - 1 && y === gridSize - 1 && z === gridSize - 1) {
+                // White cube at opposite corner
+                material = new THREE.MeshPhongMaterial({
+                    color: 0xffffff,
+                    shininess: 70,
+                    transparent: true,
+                    opacity: 0.9
+                });
+            } else if (x === 0) {
                 material = planeMaterials.xPlane;
             } else if (y === 0) {
                 material = planeMaterials.yPlane;
             } else if (z === 0) {
                 material = planeMaterials.zPlane;
             } else {
-                // Enhanced color calculation
+                // Calculate color based on position
+                // Use exponential scaling for more dramatic color spread
                 const color = new THREE.Color(
-                    0.5 + (x / gridSize) * 0.5,  // Red component - starts at 0.5
-                    0.5 + (y / gridSize) * 0.5,  // Green component - starts at 0.5
-                    0.5 + (z / gridSize) * 0.5   // Blue component - starts at 0.5
+                    Math.pow((nx + 1) / 2, 2),  // Red component
+                    Math.pow((ny + 1) / 2, 2),  // Green component
+                    Math.pow((nz + 1) / 2, 2)   // Blue component
                 );
+                
                 material = new THREE.MeshPhongMaterial({
                     color: color,
-                    shininess: 70,    // Increased shininess
+                    shininess: 70,
                     transparent: true,
-                    opacity: 0.9      // Increased opacity
+                    opacity: 0.9
                 });
             }
 
@@ -68,10 +90,10 @@ for (let x = 0; x < gridSize; x++) {
 }
 
 // Enhanced lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);  // Increased ambient light
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);  // Increased directional light
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
 directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
