@@ -6,23 +6,27 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000); // Black background
 document.body.appendChild(renderer.domElement);
 
-// Create a 6x6x6 grid of small cubes
+// Setup
 const gridSize = 6;
-const cubeSize = 0.5; // Size of each individual cube
-const spacing = 0.6; // Space between cubes
-const offset = (gridSize - 1) * spacing / 2; // Center the grid
+const cubeSize = 0.5;
+const spacing = 0.6;
+const offset = (gridSize - 1) * spacing / 2;
 
-// Create materials for each plane
-const materials = {
-    xPlane: new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.3 }), // Blue
-    yPlane: new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 }), // Red
-    zPlane: new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3 }), // Green
-    defaultCube: new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true })
+// Create materials for planes
+const planeMaterials = {
+    xPlane: new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.3 }),
+    yPlane: new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 }),
+    zPlane: new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3 })
 };
 
 const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+
+// Create parent object to hold all cubes
+const cubeParent = new THREE.Object3D();
+scene.add(cubeParent);
 
 // Create grid of cubes
 for (let x = 0; x < gridSize; x++) {
@@ -30,25 +34,46 @@ for (let x = 0; x < gridSize; x++) {
         for (let z = 0; z < gridSize; z++) {
             let material;
             
-            // Determine if cube is on one of the outer planes
-            if (x === 0) material = materials.xPlane;
-            else if (y === 0) material = materials.yPlane;
-            else if (z === 0) material = materials.zPlane;
-            else material = materials.defaultCube;
+            // Color based on position
+            if (x === 0) {
+                material = planeMaterials.xPlane;
+            } else if (y === 0) {
+                material = planeMaterials.yPlane;
+            } else if (z === 0) {
+                material = planeMaterials.zPlane;
+            } else {
+                // Create gradient colors based on position
+                const color = new THREE.Color(
+                    x / gridSize,  // Red component
+                    y / gridSize,  // Green component
+                    z / gridSize   // Blue component
+                );
+                material = new THREE.MeshPhongMaterial({
+                    color: color,
+                    shininess: 50,
+                    transparent: true,
+                    opacity: 0.8
+                });
+            }
 
             const cube = new THREE.Mesh(cubeGeometry, material);
-            
-            // Position each cube
             cube.position.set(
                 x * spacing - offset,
                 y * spacing - offset,
                 z * spacing - offset
             );
-            
-            scene.add(cube);
+            cubeParent.add(cube);
         }
     }
 }
+
+// Add lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
 
 // Add orbit controls
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -58,9 +83,16 @@ controls.enableDamping = true;
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-// Animation loop
+// Animation
+const rotationSpeed = 0.005; // Adjust this value to change rotation speed
+
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Rotate the entire cube structure
+    cubeParent.rotation.y += rotationSpeed;
+    cubeParent.rotation.x += rotationSpeed * 0.5;
+    
     controls.update();
     renderer.render(scene, camera);
 }
