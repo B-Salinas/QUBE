@@ -12,7 +12,7 @@ document.body.appendChild(renderer.domElement);
 // Constants
 const MAX_DEPTH = 5;
 const BASE_SIZE = 2;
-const SCALE_FACTOR = 0.5; // Reduced from 0.5 to prevent overlap at deeper levels
+const SCALE_FACTOR = 0.4; // Reduced from 0.5 to prevent overlap at deeper levels
 
 // Color and opacity mapping for each level
 const LEVEL_PROPERTIES = {
