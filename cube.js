@@ -10,7 +10,7 @@ renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Constants
-const MAX_DEPTH = 4;  // Increased to 4 levels
+const MAX_DEPTH = 4;
 const BASE_SIZE = 2;
 const SCALE_FACTOR = 0.5;
 
@@ -22,10 +22,13 @@ const LEVEL_COLORS = {
     4: 0x00ff00   // Green
 };
 
+// Create a container for the entire structure
+const entireStructure = new THREE.Object3D();
+scene.add(entireStructure);
+
 function createCornerCube(depth, size, position) {
     if (depth > MAX_DEPTH) return;
 
-    // Create wireframe cube with color based on depth
     const geometry = new THREE.BoxGeometry(size, size, size);
     const material = new THREE.MeshBasicMaterial({
         color: LEVEL_COLORS[depth],
@@ -34,14 +37,12 @@ function createCornerCube(depth, size, position) {
 
     const cube = new THREE.Mesh(geometry, material);
     cube.position.copy(position);
-    scene.add(cube);
+    entireStructure.add(cube);
 
-    // If we haven't reached max depth, create corner cubes
     if (depth < MAX_DEPTH) {
         const newSize = size * SCALE_FACTOR;
-        const offset = size / 2;  // Distance to corners
+        const offset = size / 2;
 
-        // Define the 8 corners
         const corners = [
             new THREE.Vector3(-offset, -offset, -offset),
             new THREE.Vector3(-offset, -offset, offset),
@@ -53,7 +54,6 @@ function createCornerCube(depth, size, position) {
             new THREE.Vector3(offset, offset, offset)
         ];
 
-        // Create cube at each corner
         corners.forEach(corner => {
             const newPosition = position.clone().add(corner);
             createCornerCube(depth + 1, newSize, newPosition);
@@ -61,20 +61,28 @@ function createCornerCube(depth, size, position) {
     }
 }
 
-// Create the initial cube at center
+// Create the initial structure
 createCornerCube(1, BASE_SIZE, new THREE.Vector3(0, 0, 0));
 
 // Set up camera
-camera.position.set(5, 5, 5);  // Moved back slightly for better view
+camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
 // Add controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
+// Animation parameters
+const rotationSpeed = 0.005;
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
+    
+    // Rotate the entire structure
+    entireStructure.rotation.y += rotationSpeed;
+    entireStructure.rotation.x += rotationSpeed * 0.5;
+    
     controls.update();
     renderer.render(scene, camera);
 }
