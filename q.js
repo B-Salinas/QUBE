@@ -42,17 +42,17 @@ for (let x = 0; x < gridSize; x++) {
             } else if (z === 0) {
                 material = planeMaterials.zPlane;
             } else {
-                // Create gradient colors based on position
+                // Enhanced color calculation
                 const color = new THREE.Color(
-                    x / gridSize,  // Red component
-                    y / gridSize,  // Green component
-                    z / gridSize   // Blue component
+                    0.5 + (x / gridSize) * 0.5,  // Red component - starts at 0.5
+                    0.5 + (y / gridSize) * 0.5,  // Green component - starts at 0.5
+                    0.5 + (z / gridSize) * 0.5   // Blue component - starts at 0.5
                 );
                 material = new THREE.MeshPhongMaterial({
                     color: color,
-                    shininess: 50,
+                    shininess: 70,    // Increased shininess
                     transparent: true,
-                    opacity: 0.8
+                    opacity: 0.9      // Increased opacity
                 });
             }
 
@@ -67,11 +67,11 @@ for (let x = 0; x < gridSize; x++) {
     }
 }
 
-// Add lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+// Enhanced lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);  // Increased ambient light
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);  // Increased directional light
 directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
@@ -84,12 +84,11 @@ camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
 // Animation
-const rotationSpeed = 0.005; // Adjust this value to change rotation speed
+const rotationSpeed = 0.005;
 
 function animate() {
     requestAnimationFrame(animate);
     
-    // Rotate the entire cube structure
     cubeParent.rotation.y += rotationSpeed;
     cubeParent.rotation.x += rotationSpeed * 0.5;
     
