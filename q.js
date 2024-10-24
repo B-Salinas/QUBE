@@ -12,7 +12,7 @@ document.body.appendChild(renderer.domElement);
 // Setup
 const gridSize = 6;
 const cubeSize = 0.5;
-const innerCubeScale = 0.8; // Increased from 0.6
+const innerCubeScale = 0.65; // Reduced from 0.8 to prevent clipping
 const spacing = 0.7;
 const offset = (gridSize - 1) * spacing / 2;
 
@@ -166,20 +166,29 @@ function animate() {
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Simpler color calculation for debugging
+        // Enhanced center-focused color and transparency
         const color = hslToColor(adjustedPhase, 1, 0.5);
         
-        // No transparency, full opacity
-        cube.material.opacity = 1;
+        // Calculate opacity based on distance from center
+        const distanceFactor = Math.pow(1 - cube.distanceFromCenter, 3); // Sharper falloff
+        const baseOpacity = 0.2; // Minimum opacity for outer cubes
+        const maxOpacity = 1.0; // Full opacity at center
+        cube.material.opacity = baseOpacity + (maxOpacity - baseOpacity) * distanceFactor;
         
-        // Strong emissive effect
+        // Enhanced center glow
+        const centerGlow = Math.pow(1 - cube.distanceFromCenter, 2);
+        const emissiveIntensity = 0.5 * centerGlow;
+        
+        // Set final colors
+        cube.material.transparent = true;
         cube.material.color = color;
         cube.material.emissive.setRGB(
-            color.r * 0.5,
-            color.g * 0.5,
-            color.b * 0.5
+            color.r * emissiveIntensity,
+            color.g * emissiveIntensity,
+            color.b * emissiveIntensity
         );
         
+        // Rotation remains the same
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
