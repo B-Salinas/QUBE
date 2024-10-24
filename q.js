@@ -12,7 +12,7 @@ document.body.appendChild(renderer.domElement);
 // Setup
 const gridSize = 6;
 const cubeSize = 0.5;
-const innerCubeScale = 0.65; // Reduced from 0.8 to prevent clipping
+const innerCubeScale = 0.5; // Reduced from 0.65 to 0.5 (50%)
 const spacing = 0.7;
 const offset = (gridSize - 1) * spacing / 2;
 
@@ -147,10 +147,10 @@ const colorSpeed = 0.001;
 let colorPhase = 0;
 
 function getPulseOffset(distance, phase) {
-    const pulseFreq = 1.5;
-    const pulseAmplitude = 0.8;
-    const centerEmphasis = Math.pow(1 - distance, 2);
-    const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 3);
+    const pulseFreq = 1.0; // Slower frequency
+    const pulseAmplitude = 1.0; // Stronger amplitude
+    const centerEmphasis = Math.pow(1 - distance, 2.5); // Sharper center focus
+    const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 2);
     return wave * pulseAmplitude * centerEmphasis;
 }
 
@@ -163,21 +163,43 @@ function animate() {
     colorPhase = (colorPhase + colorSpeed) % 1;
     
     innerCubes.forEach(cube => {
-        const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
+        // Enhanced center-focused effect
+        const distanceFromCenter = cube.distanceFromCenter;
+        
+        // Calculate pulse with stronger center emphasis
+        const pulseOffset = getPulseOffset(distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Simple color calculation for testing
-        const color = hslToColor(adjustedPhase, 1, 0.5);
+        // Get base chroma color
+        const chromaColor = hslToColor(adjustedPhase, 1, 0.5);
         
-        // Keep inner cubes solid for now
-        cube.material.opacity = 1;
-        cube.material.color = color;
-        cube.material.emissive.setRGB(
-            color.r * 0.5,
-            color.g * 0.5,
-            color.b * 0.5
+        // Create white-to-chroma blend based on distance
+        const centerIntensity = Math.pow(1 - distanceFromCenter, 3); // Sharper falloff
+        
+        // Blend between white and chroma color
+        const color = new THREE.Color(
+            1 - (1 - chromaColor.r) * centerIntensity,  // More white at center
+            1 - (1 - chromaColor.g) * centerIntensity,
+            1 - (1 - chromaColor.b) * centerIntensity
         );
         
+        // Opacity falls off towards edges
+        const opacity = 0.2 + (1 - distanceFromCenter) * 0.8; // Ranges from 0.2 to 1.0
+        cube.material.transparent = true;
+        cube.material.opacity = opacity;
+        
+        // Enhanced center glow
+        const emissiveStrength = Math.pow(1 - distanceFromCenter, 2) * 0.7; // Stronger glow
+        
+        // Apply final materials
+        cube.material.color = color;
+        cube.material.emissive.setRGB(
+            color.r * emissiveStrength,
+            color.g * emissiveStrength,
+            color.b * emissiveStrength
+        );
+        
+        // Slightly slower rotation for more emphasis on colors
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
