@@ -31,6 +31,7 @@ scene.add(cubeParent);
 
 const innerCubes = [];
 
+// Helper functions
 function getColorFromPosition(nx, ny, nz) {
     return new THREE.Color(
         Math.pow((nx + 1) / 2, 2),
@@ -41,6 +42,16 @@ function getColorFromPosition(nx, ny, nz) {
 
 function hslToColor(h, s, l) {
     return new THREE.Color().setHSL(h, s, l);
+}
+
+// New layer helper function
+function getLayerFromPosition(x, y, z, gridSize) {
+    const centerPos = Math.floor(gridSize / 2);
+    const xDist = Math.abs(x - centerPos);
+    const yDist = Math.abs(y - centerPos);
+    const zDist = Math.abs(z - centerPos);
+    
+    return Math.max(xDist, yDist, zDist); // Layer number (0 is center)
 }
 
 // Create grid of cubes
@@ -58,7 +69,7 @@ for (let x = 0; x < gridSize; x++) {
                 z * spacing - offset
             );
 
-            // Very transparent outer cube
+            // Outer cube material logic
             let outerMaterial;
             if (x === 0 && y === 0 && z === 0) {
                 outerMaterial = new THREE.MeshPhongMaterial({
@@ -89,7 +100,39 @@ for (let x = 0; x < gridSize; x++) {
             const outerCube = new THREE.Mesh(outerCubeGeometry, outerMaterial);
             cubeContainer.add(outerCube);
 
-            // Calculate distance from center
+            // Get layer for inner cube
+            const layer = getLayerFromPosition(x, y, z, gridSize);
+            
+            // Define opacity based on layer
+            let opacity;
+            switch(layer) {
+                case 0:  // Center cube
+                    opacity = 1.0;
+                    break;
+                case 1:  // First layer out (3x3x3 region)
+                    opacity = 0.85;
+                    break;
+                case 2:  // Second layer (5x5x5 region)
+                    opacity = 0.6;
+                    break;
+                default: // Outer layer
+                    opacity = 0.3;
+                    break;
+            }
+
+            // Create inner cube with layer-based material
+            const innerMaterial = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(1, 1, 1),
+                transparent: true,
+                opacity: opacity,
+                shininess: 100,
+                emissive: new THREE.Color(0.2, 0.2, 0.2)
+            });
+
+            const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
+            cubeContainer.add(innerCube);
+
+            // Calculate distance from center for color effects
             const centerX = (gridSize - 1) / 2;
             const centerY = (gridSize - 1) / 2;
             const centerZ = (gridSize - 1) / 2;
@@ -100,22 +143,12 @@ for (let x = 0; x < gridSize; x++) {
                 Math.pow(z - centerZ, 2)
             ) / (Math.sqrt(3) * gridSize / 2);
 
-            // Create inner cube with solid material
-            const innerMaterial = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(1, 1, 1),
-                transparent: false,  // Make solid
-                shininess: 100,
-                emissive: new THREE.Color(0.2, 0.2, 0.2)
-            });
-
-            const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
-            cubeContainer.add(innerCube);
-
             innerCubes.push({
                 material: innerMaterial,
                 position: {x, y, z},
                 mesh: innerCube,
-                distanceFromCenter: distanceFromCenter
+                distanceFromCenter: distanceFromCenter,
+                layer: layer
             });
 
             cubeParent.add(cubeContainer);
@@ -138,15 +171,15 @@ controls.enableDamping = true;
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-// Animation
+// Animation parameters
 const rotationSpeed = 0.003;
 const innerRotationSpeed = 0.00055;
 const colorSpeed = 0.001;
 let colorPhase = 0;
 
 function getPulseOffset(distance, phase) {
-    const pulseFreq = 0.5; // Slowed down for smoother color transitions
-    const pulseAmplitude = 0.3; // Reduced for more subtle color shifts
+    const pulseFreq = 0.5;
+    const pulseAmplitude = 0.3;
     const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 2);
     return wave * pulseAmplitude;
 }
@@ -160,20 +193,19 @@ function animate() {
     colorPhase = (colorPhase + colorSpeed) % 1;
     
     innerCubes.forEach(cube => {
-        // Calculate base color phase with distance offset
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Full spectrum color cycling
-        // adjustedPhase goes from 0 to 1, naturally mapping to the full HSL color wheel
-        const color = hslToColor(adjustedPhase, 0.8, 0.5); // Saturation at 0.8 for vibrant but not overwhelming colors
+        const color = hslToColor(adjustedPhase, 0.8, 0.5);
+        
+        // Layer-based emissive intensity
+        const emissiveIntensity = 0.4 - (cube.layer * 0.1);
         
         cube.material.color = color;
-        // Enhanced emissive for better color visibility
         cube.material.emissive.setRGB(
-            color.r * 0.4,  // Increased from 0.3 for more vibrancy
-            color.g * 0.4,
-            color.b * 0.4
+            color.r * emissiveIntensity,
+            color.g * emissiveIntensity,
+            color.b * emissiveIntensity
         );
         
         cube.mesh.rotation.x += innerRotationSpeed;
