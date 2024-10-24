@@ -12,7 +12,7 @@ document.body.appendChild(renderer.domElement);
 // Setup
 const gridSize = 6;
 const cubeSize = 0.5;
-const innerCubeScale = 0.5; // 50% size of outer cube
+const innerCubeScale = 0.5;
 const spacing = 0.7;
 const offset = (gridSize - 1) * spacing / 2;
 
@@ -100,10 +100,10 @@ for (let x = 0; x < gridSize; x++) {
                 Math.pow(z - centerZ, 2)
             ) / (Math.sqrt(3) * gridSize / 2);
 
-            // Create inner cube with initial material
+            // Create inner cube with solid material
             const innerMaterial = new THREE.MeshPhongMaterial({
                 color: new THREE.Color(1, 1, 1),
-                transparent: true,
+                transparent: false,  // Make solid
                 shininess: 100,
                 emissive: new THREE.Color(0.2, 0.2, 0.2)
             });
@@ -123,33 +123,32 @@ for (let x = 0; x < gridSize; x++) {
     }
 }
 
-// Enhanced lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
 directionalLight.position.set(5, 5, 5);
 scene.add(directionalLight);
 
-// Controls setup
+// Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-// Animation parameters
+// Animation
 const rotationSpeed = 0.003;
 const innerRotationSpeed = 0.00055;
 const colorSpeed = 0.001;
 let colorPhase = 0;
 
 function getPulseOffset(distance, phase) {
-    const pulseFreq = 1.0;
-    const pulseAmplitude = 1.0;
-    const centerEmphasis = Math.pow(1 - distance, 2.5);
+    const pulseFreq = 0.5; // Slowed down for smoother color transitions
+    const pulseAmplitude = 0.3; // Reduced for more subtle color shifts
     const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 2);
-    return wave * pulseAmplitude * centerEmphasis;
+    return wave * pulseAmplitude;
 }
 
 function animate() {
@@ -161,37 +160,22 @@ function animate() {
     colorPhase = (colorPhase + colorSpeed) % 1;
     
     innerCubes.forEach(cube => {
+        // Calculate base color phase with distance offset
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Get base chroma color
-        const chromaColor = hslToColor(adjustedPhase, 1, 0.5);
+        // Full spectrum color cycling
+        // adjustedPhase goes from 0 to 1, naturally mapping to the full HSL color wheel
+        const color = hslToColor(adjustedPhase, 0.8, 0.5); // Saturation at 0.8 for vibrant but not overwhelming colors
         
-        // Create white-to-chroma blend based on distance
-        const centerIntensity = Math.pow(1 - cube.distanceFromCenter, 3);
-        
-        // Blend colors
-        const color = new THREE.Color(
-            1 - (1 - chromaColor.r) * centerIntensity,
-            1 - (1 - chromaColor.g) * centerIntensity,
-            1 - (1 - chromaColor.b) * centerIntensity
-        );
-        
-        // Set opacity based on distance
-        const opacity = 0.3 + (1 - cube.distanceFromCenter) * 0.7;
-        cube.material.transparent = true;
-        cube.material.opacity = opacity;
-        
-        // Set emissive glow
-        const emissiveStrength = Math.pow(1 - cube.distanceFromCenter, 2) * 0.7;
         cube.material.color = color;
+        // Enhanced emissive for better color visibility
         cube.material.emissive.setRGB(
-            color.r * emissiveStrength,
-            color.g * emissiveStrength,
-            color.b * emissiveStrength
+            color.r * 0.4,  // Increased from 0.3 for more vibrancy
+            color.g * 0.4,
+            color.b * 0.4
         );
         
-        // Rotate inner cube
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
