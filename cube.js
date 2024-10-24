@@ -10,17 +10,25 @@ renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Constants
-const MAX_DEPTH = 3;  // How deep we go with recursion
-const BASE_SIZE = 2;  // Size of initial cube
-const SCALE_FACTOR = 0.5;  // Each new cube is 50% size of parent
+const MAX_DEPTH = 4;  // Increased to 4 levels
+const BASE_SIZE = 2;
+const SCALE_FACTOR = 0.5;
+
+// Color mapping for each level
+const LEVEL_COLORS = {
+    1: 0xffffff,  // White
+    2: 0xff0000,  // Red
+    3: 0x0000ff,  // Blue
+    4: 0x00ff00   // Green
+};
 
 function createCornerCube(depth, size, position) {
     if (depth > MAX_DEPTH) return;
 
-    // Create wireframe cube
+    // Create wireframe cube with color based on depth
     const geometry = new THREE.BoxGeometry(size, size, size);
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: LEVEL_COLORS[depth],
         wireframe: true
     });
 
@@ -57,7 +65,7 @@ function createCornerCube(depth, size, position) {
 createCornerCube(1, BASE_SIZE, new THREE.Vector3(0, 0, 0));
 
 // Set up camera
-camera.position.set(4, 4, 4);
+camera.position.set(5, 5, 5);  // Moved back slightly for better view
 camera.lookAt(0, 0, 0);
 
 // Add controls
