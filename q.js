@@ -12,7 +12,7 @@ document.body.appendChild(renderer.domElement);
 // Setup
 const gridSize = 3;
 const cubeSize = 0.8;
-const innerCubeScale = 0.6; // Increased from 0.4
+const innerCubeScale = 0.6;
 const spacing = 1.2;
 const offset = (gridSize - 1) * spacing / 2;
 
@@ -29,12 +29,20 @@ const innerCubeGeometry = new THREE.BoxGeometry(cubeSize * innerCubeScale, cubeS
 const cubeParent = new THREE.Object3D();
 scene.add(cubeParent);
 
+// Store references to inner cube materials for color updates
+const innerCubeMaterials = [];
+
 function getColorFromPosition(nx, ny, nz) {
     return new THREE.Color(
         Math.pow((nx + 1) / 2, 2),
         Math.pow((ny + 1) / 2, 2),
         Math.pow((nz + 1) / 2, 2)
     );
+}
+
+// Helper function to convert HSL to RGB
+function hslToColor(h, s, l) {
+    return new THREE.Color().setHSL(h, s, l);
 }
 
 // Create grid of cubes
@@ -45,7 +53,6 @@ for (let x = 0; x < gridSize; x++) {
             const ny = (y / (gridSize - 1)) * 2 - 1;
             const nz = (z / (gridSize - 1)) * 2 - 1;
 
-            // Create container group for this position
             const cubeContainer = new THREE.Group();
             cubeContainer.position.set(
                 x * spacing - offset,
@@ -59,7 +66,7 @@ for (let x = 0; x < gridSize; x++) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: 0x000000,
                     transparent: true,
-                    opacity: 0.5 // More transparent to show inner cube
+                    opacity: 0.5
                 });
             } else if (x === gridSize - 1 && y === gridSize - 1 && z === gridSize - 1) {
                 outerMaterial = new THREE.MeshPhongMaterial({
@@ -77,22 +84,25 @@ for (let x = 0; x < gridSize; x++) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: getColorFromPosition(nx, ny, nz),
                     transparent: true,
-                    opacity: 0.4 // More transparent outer cube
+                    opacity: 0.4
                 });
             }
 
             const outerCube = new THREE.Mesh(outerCubeGeometry, outerMaterial);
             cubeContainer.add(outerCube);
 
-            // Create inner cube with contrasting color
+            // Create inner cube with initial color
             const innerMaterial = new THREE.MeshPhongMaterial({
-                color: getColorFromPosition(-nx, -ny, -nz),
-                transparent: false, // Solid inner cube
-                shininess: 100
+                color: new THREE.Color(1, 1, 1),
+                transparent: false,
+                shininess: 100,
+                emissive: new THREE.Color(0.2, 0.2, 0.2) // Add slight glow
             });
+            
+            innerCubeMaterials.push(innerMaterial);
 
             const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
-            cubeContainer.add(innerCube); // Add to same container as outer cube
+            cubeContainer.add(innerCube);
 
             cubeParent.add(cubeContainer);
         }
@@ -100,7 +110,7 @@ for (let x = 0; x < gridSize; x++) {
 }
 
 // Enhanced lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
 scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -117,6 +127,8 @@ camera.lookAt(0, 0, 0);
 
 // Animation
 const rotationSpeed = 0.005;
+const colorSpeed = 0.005; // Speed of color cycling
+let colorPhase = 0;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -125,11 +137,21 @@ function animate() {
     cubeParent.rotation.y += rotationSpeed;
     cubeParent.rotation.x += rotationSpeed * 0.5;
     
-    // Rotate inner cubes
-    cubeParent.children.forEach(container => {
-        if (container.children[1]) { // Second child is inner cube
+    // Update color phase
+    colorPhase = (colorPhase + colorSpeed) % 1;
+    
+    // Update inner cube colors and rotation
+    cubeParent.children.forEach((container, index) => {
+        if (container.children[1]) {
+            // Rotate inner cube
             container.children[1].rotation.x += rotationSpeed * 2;
             container.children[1].rotation.y -= rotationSpeed * 3;
+            
+            // Update color
+            const material = innerCubeMaterials[index];
+            const color = hslToColor(colorPhase, 1, 0.5);
+            material.color = color;
+            material.emissive.setRGB(color.r * 0.2, color.g * 0.2, color.b * 0.2);
         }
     });
     
