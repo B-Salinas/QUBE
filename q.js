@@ -18,9 +18,9 @@ const offset = (gridSize - 1) * spacing / 2;
 
 // Create materials for planes
 const planeMaterials = {
-    xPlane: new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true, opacity: 0.3 }),
-    yPlane: new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.3 }),
-    zPlane: new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3 })
+    xPlane: new THREE.MeshPhongMaterial({ color: 0x0000ff, transparent: true, opacity: 0.1 }), // Much more transparent
+    yPlane: new THREE.MeshPhongMaterial({ color: 0xff0000, transparent: true, opacity: 0.1 }),
+    zPlane: new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true, opacity: 0.1 })
 };
 
 const outerCubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
@@ -65,13 +65,13 @@ for (let x = 0; x < gridSize; x++) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: 0x000000,
                     transparent: true,
-                    opacity: 0.2  // More transparent
+                    opacity: 0.1  // Much more transparent
                 });
             } else if (x === gridSize - 1 && y === gridSize - 1 && z === gridSize - 1) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: 0xffffff,
                     transparent: true,
-                    opacity: 0.2  // More transparent
+                    opacity: 0.1
                 });
             } else if (x === 0) {
                 outerMaterial = planeMaterials.xPlane;
@@ -83,7 +83,7 @@ for (let x = 0; x < gridSize; x++) {
                 outerMaterial = new THREE.MeshPhongMaterial({
                     color: getColorFromPosition(nx, ny, nz),
                     transparent: true,
-                    opacity: 0.2  // More transparent
+                    opacity: 0.1
                 });
             }
 
@@ -103,7 +103,7 @@ for (let x = 0; x < gridSize; x++) {
 
             // Create inner cube with solid material
             const innerMaterial = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(1, 0, 0),  // Start with red for debugging
+                color: new THREE.Color(1, 0, 0),  // Start with red for visibility
                 transparent: false,  // Make solid
                 shininess: 100,
                 emissive: new THREE.Color(0.5, 0, 0)  // Add strong emissive
@@ -166,29 +166,18 @@ function animate() {
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Enhanced center-focused color and transparency
+        // Simple color calculation for testing
         const color = hslToColor(adjustedPhase, 1, 0.5);
         
-        // Calculate opacity based on distance from center
-        const distanceFactor = Math.pow(1 - cube.distanceFromCenter, 3); // Sharper falloff
-        const baseOpacity = 0.2; // Minimum opacity for outer cubes
-        const maxOpacity = 1.0; // Full opacity at center
-        cube.material.opacity = baseOpacity + (maxOpacity - baseOpacity) * distanceFactor;
-        
-        // Enhanced center glow
-        const centerGlow = Math.pow(1 - cube.distanceFromCenter, 2);
-        const emissiveIntensity = 0.5 * centerGlow;
-        
-        // Set final colors
-        cube.material.transparent = true;
+        // Keep inner cubes solid for now
+        cube.material.opacity = 1;
         cube.material.color = color;
         cube.material.emissive.setRGB(
-            color.r * emissiveIntensity,
-            color.g * emissiveIntensity,
-            color.b * emissiveIntensity
+            color.r * 0.5,
+            color.g * 0.5,
+            color.b * 0.5
         );
         
-        // Rotation remains the same
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
