@@ -9,11 +9,11 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
-// Setup
-const gridSize = 3;
-const cubeSize = 0.8;
+// Updated setup for 6x6x6
+const gridSize = 6;
+const cubeSize = 0.5;  // Smaller cubes for larger grid
 const innerCubeScale = 0.6;
-const spacing = 1.2;
+const spacing = 0.7;   // Adjusted spacing
 const offset = (gridSize - 1) * spacing / 2;
 
 // Create materials for planes
@@ -29,7 +29,7 @@ const innerCubeGeometry = new THREE.BoxGeometry(cubeSize * innerCubeScale, cubeS
 const cubeParent = new THREE.Object3D();
 scene.add(cubeParent);
 
-// Store references to inner cube materials and their positions
+// Store references to inner cubes
 const innerCubes = [];
 
 function getColorFromPosition(nx, ny, nz) {
@@ -59,7 +59,7 @@ for (let x = 0; x < gridSize; x++) {
                 z * spacing - offset
             );
 
-            // Create outer cube with same material logic...
+            // Outer cube material logic
             let outerMaterial;
             if (x === 0 && y === 0 && z === 0) {
                 outerMaterial = new THREE.MeshPhongMaterial({
@@ -101,11 +101,22 @@ for (let x = 0; x < gridSize; x++) {
             const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
             cubeContainer.add(innerCube);
 
-            // Store cube info for color updates
+            // Calculate distance from center for pulsing effect
+            const centerX = (gridSize - 1) / 2;
+            const centerY = (gridSize - 1) / 2;
+            const centerZ = (gridSize - 1) / 2;
+            
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(x - centerX, 2) + 
+                Math.pow(y - centerY, 2) + 
+                Math.pow(z - centerZ, 2)
+            ) / (Math.sqrt(3) * gridSize / 2); // Normalize distance
+
             innerCubes.push({
                 material: innerMaterial,
                 position: {x, y, z},
-                mesh: innerCube
+                mesh: innerCube,
+                distanceFromCenter: distanceFromCenter
             });
 
             cubeParent.add(cubeContainer);
@@ -125,26 +136,26 @@ scene.add(directionalLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 
-camera.position.set(6, 6, 6);
+camera.position.set(8, 8, 8); // Moved camera back for larger grid
 camera.lookAt(0, 0, 0);
 
-// Animation
-const rotationSpeed = 0.005;
-const innerRotationSpeed = 0.001; // Slowed down inner rotation
-const colorSpeed = 0.003; // Slowed down color cycling
-let colorPhase = 0;
-
-// Calculate color offset based on cube position
-function getColorOffset(x, y, z) {
-    // Create offset based on distance from center
-    const centerOffset = Math.sqrt(
-        Math.pow(x - (gridSize-1)/2, 2) + 
-        Math.pow(y - (gridSize-1)/2, 2) + 
-        Math.pow(z - (gridSize-1)/2, 2)
-    ) / (gridSize * 1.5);
+// Enhanced pulsing function
+function getPulseOffset(distance, phase) {
+    const pulseFreq = 1.5; // Adjusted for clearer wave pattern
+    const pulseAmplitude = 0.8; // Increased amplitude for stronger effect
     
-    return centerOffset;
+    // Enhanced center-based effect
+    const centerEmphasis = Math.pow(1 - distance, 2); // Quadratic falloff from center
+    const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 3);
+    
+    return wave * pulseAmplitude * centerEmphasis;
 }
+
+// Animation constants
+const rotationSpeed = 0.003;
+const innerRotationSpeed = 0.00055; // 10% increase from 0.0005
+const colorSpeed = 0.001;
+let colorPhase = 0;
 
 function animate() {
     requestAnimationFrame(animate);
@@ -158,18 +169,26 @@ function animate() {
     
     // Update inner cubes
     innerCubes.forEach(cube => {
-        // Calculate position-based offset
-        const offset = getColorOffset(cube.position.x, cube.position.y, cube.position.z);
+        // Enhanced pulsing color effect
+        const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
+        const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Calculate color with offset
-        const adjustedPhase = (colorPhase + offset) % 1;
-        const color = hslToColor(adjustedPhase, 1, 0.5);
+        // Enhanced center-based brightness
+        const brightness = 0.3 + (1 - cube.distanceFromCenter) * 0.5; // More dramatic brightness variation
+        const saturation = 0.7 + (1 - cube.distanceFromCenter) * 0.3; // Saturation varies with distance
         
-        // Apply color
+        const color = hslToColor(adjustedPhase, saturation, brightness);
+        
+        // Enhanced emissive effect for center cubes
+        const emissiveIntensity = 0.2 + (1 - cube.distanceFromCenter) * 0.3;
         cube.material.color = color;
-        cube.material.emissive.setRGB(color.r * 0.2, color.g * 0.2, color.b * 0.2);
+        cube.material.emissive.setRGB(
+            color.r * emissiveIntensity,
+            color.g * emissiveIntensity,
+            color.b * emissiveIntensity
+        );
         
-        // Rotate inner cube
+        // Slightly faster inner cube rotation
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
