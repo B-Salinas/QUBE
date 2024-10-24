@@ -90,12 +90,12 @@ for (let x = 0; x < gridSize; x++) {
             const outerCube = new THREE.Mesh(outerCubeGeometry, outerMaterial);
             cubeContainer.add(outerCube);
 
-            // Create inner cube
+            // Modified inner cube creation within the grid creation loop
             const innerMaterial = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(1, 1, 1),
-                transparent: false,
-                shininess: 100,
-                emissive: new THREE.Color(0.2, 0.2, 0.2)
+            color: new THREE.Color(1, 1, 1),
+            transparent: true, // Enable transparency for all inner cubes
+            shininess: 100,
+            emissive: new THREE.Color(0.2, 0.2, 0.2)
             });
 
             const innerCube = new THREE.Mesh(innerCubeGeometry, innerMaterial);
@@ -139,48 +139,50 @@ controls.enableDamping = true;
 camera.position.set(8, 8, 8); // Moved camera back for larger grid
 camera.lookAt(0, 0, 0);
 
-// Enhanced pulsing function
-function getPulseOffset(distance, phase) {
-    const pulseFreq = 1.5; // Adjusted for clearer wave pattern
-    const pulseAmplitude = 0.8; // Increased amplitude for stronger effect
-    
-    // Enhanced center-based effect
-    const centerEmphasis = Math.pow(1 - distance, 2); // Quadratic falloff from center
-    const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 3);
-    
-    return wave * pulseAmplitude * centerEmphasis;
-}
-
-// Animation constants
+// Animation
 const rotationSpeed = 0.003;
-const innerRotationSpeed = 0.00055; // 10% increase from 0.0005
+const innerRotationSpeed = 0.00055;
 const colorSpeed = 0.001;
 let colorPhase = 0;
+
+// Enhanced pulsing function
+function getPulseOffset(distance, phase) {
+    const pulseFreq = 1.5;
+    const pulseAmplitude = 0.8;
+    const centerEmphasis = Math.pow(1 - distance, 2.5); // Increased power for sharper falloff
+    const wave = Math.sin(phase * Math.PI * 2 * pulseFreq + distance * Math.PI * 3);
+    return wave * pulseAmplitude * centerEmphasis;
+};
 
 function animate() {
     requestAnimationFrame(animate);
     
-    // Rotate entire structure
     cubeParent.rotation.y += rotationSpeed;
     cubeParent.rotation.x += rotationSpeed * 0.5;
     
-    // Update color phase
     colorPhase = (colorPhase + colorSpeed) % 1;
     
-    // Update inner cubes
     innerCubes.forEach(cube => {
-        // Enhanced pulsing color effect
         const pulseOffset = getPulseOffset(cube.distanceFromCenter, colorPhase);
         const adjustedPhase = (colorPhase + pulseOffset) % 1;
         
-        // Enhanced center-based brightness
-        const brightness = 0.3 + (1 - cube.distanceFromCenter) * 0.5; // More dramatic brightness variation
-        const saturation = 0.7 + (1 - cube.distanceFromCenter) * 0.3; // Saturation varies with distance
+        // Calculate base color - start with white and blend with chroma
+        const chromaColor = hslToColor(adjustedPhase, 1, 0.5);
+        const centerStrength = Math.pow(1 - cube.distanceFromCenter, 3); // Sharper falloff for color
         
-        const color = hslToColor(adjustedPhase, saturation, brightness);
+        // Blend between white and chroma color based on distance
+        const color = new THREE.Color(
+            1 - (1 - chromaColor.r) * centerStrength,
+            1 - (1 - chromaColor.g) * centerStrength,
+            1 - (1 - chromaColor.b) * centerStrength
+        );
         
-        // Enhanced emissive effect for center cubes
-        const emissiveIntensity = 0.2 + (1 - cube.distanceFromCenter) * 0.3;
+        // Calculate opacity - more transparent further from center
+        const opacity = Math.pow(1 - cube.distanceFromCenter, 1.5); // Adjust power for desired falloff
+        cube.material.opacity = 0.2 + opacity * 0.8; // Ensure minimum visibility
+        
+        // Enhanced emissive effect for center
+        const emissiveIntensity = 0.3 * opacity;
         cube.material.color = color;
         cube.material.emissive.setRGB(
             color.r * emissiveIntensity,
@@ -188,7 +190,6 @@ function animate() {
             color.b * emissiveIntensity
         );
         
-        // Slightly faster inner cube rotation
         cube.mesh.rotation.x += innerRotationSpeed;
         cube.mesh.rotation.y -= innerRotationSpeed * 1.5;
     });
