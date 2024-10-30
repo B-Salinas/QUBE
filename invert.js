@@ -12,16 +12,15 @@ document.body.appendChild(renderer.domElement);
 // Constants
 const MAX_DEPTH = 4;
 const BASE_SIZE = 2;
-const SCALE_FACTOR = 0.4; // Reduced from 0.5 to prevent overlap at deeper levels
+// For inner subdivision, we'll divide by 2 each time
+const SCALE_FACTOR = 0.5;
 
-// Color and opacity mapping for each level
-const LEVEL_PROPERTIES = {
-    1: { color: 0xffffff, opacity: 1.0 },    // White
-    2: { color: 0x61dafb, opacity: 0.9 },    // Light blue
-    3: { color: 0x41c7c7, opacity: 0.8 },    // Teal
-    4: { color: 0x2288aa, opacity: 0.7 },    // Darker blue
-    5: { color: 0x145566, opacity: 0.6 },    // Deep blue
-    6: { color: 0x0a2233, opacity: 0.5 }     // Very deep blue
+// Color mapping for each level
+const LEVEL_COLORS = {
+    1: 0xffffff,  // White
+    2: 0x61dafb,  // Light blue
+    3: 0x41c7c7,  // Teal
+    4: 0x2288aa   // Darker blue
 };
 
 // Create a container for the entire structure
@@ -31,16 +30,16 @@ scene.add(entireStructure);
 // Keep track of cube count
 let cubeCount = 0;
 
-function createCornerCube(depth, size, position) {
+function createSubdividedCube(depth, size, position) {
     if (depth > MAX_DEPTH) return;
 
     // Create cube
     const geometry = new THREE.BoxGeometry(size, size, size);
     const material = new THREE.MeshBasicMaterial({
-        color: LEVEL_PROPERTIES[depth].color,
+        color: LEVEL_COLORS[depth],
         wireframe: true,
         transparent: true,
-        opacity: LEVEL_PROPERTIES[depth].opacity
+        opacity: 0.8
     });
 
     const cube = new THREE.Mesh(geometry, material);
@@ -50,9 +49,10 @@ function createCornerCube(depth, size, position) {
 
     if (depth < MAX_DEPTH) {
         const newSize = size * SCALE_FACTOR;
-        const offset = size / 2;
+        const offset = newSize / 2; // Offset is half the new size for internal subdivision
 
-        const corners = [
+        // Define the 8 octants within the current cube
+        const octants = [
             new THREE.Vector3(-offset, -offset, -offset),
             new THREE.Vector3(-offset, -offset, offset),
             new THREE.Vector3(-offset, offset, -offset),
@@ -63,19 +63,19 @@ function createCornerCube(depth, size, position) {
             new THREE.Vector3(offset, offset, offset)
         ];
 
-        corners.forEach(corner => {
-            const newPosition = position.clone().add(corner);
-            createCornerCube(depth + 1, newSize, newPosition);
+        octants.forEach(octant => {
+            const newPosition = position.clone().add(octant);
+            createSubdividedCube(depth + 1, newSize, newPosition);
         });
     }
 }
 
 // Create the initial structure
-createCornerCube(1, BASE_SIZE, new THREE.Vector3(0, 0, 0));
+createSubdividedCube(1, BASE_SIZE, new THREE.Vector3(0, 0, 0));
 console.log(`Total cubes created: ${cubeCount}`);
 
 // Set up camera
-camera.position.set(6, 6, 6); // Moved back slightly for better view
+camera.position.set(4, 4, 4);
 camera.lookAt(0, 0, 0);
 
 // Add controls
@@ -85,7 +85,7 @@ controls.dampingFactor = 0.05;
 controls.rotateSpeed = 0.5;
 
 // Animation parameters
-const rotationSpeed = 0.001; // Reduced speed due to complexity
+const rotationSpeed = 0.002;
 
 // Animation loop
 function animate() {
