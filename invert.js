@@ -10,7 +10,7 @@ renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Constants
-const MAX_DEPTH = 4;
+const MAX_DEPTH = 6;
 const BASE_SIZE = 2;
 // For inner subdivision, we'll divide by 2 each time
 const SCALE_FACTOR = 0.5;
@@ -85,7 +85,7 @@ controls.dampingFactor = 0.05;
 controls.rotateSpeed = 0.5;
 
 // Animation parameters
-const rotationSpeed = 0.002;
+const rotationSpeed = 0.005;
 
 // Animation loop
 function animate() {
