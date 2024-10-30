@@ -10,21 +10,18 @@ renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Constants
-const MAX_DEPTH = 6;  // We can go deeper since we're scaling by golden ratio
+const MAX_DEPTH = 3;  // We can go deeper since we're scaling by golden ratio
 const BASE_SIZE = 2;
 const PHI = 1.618033988749895;  // Golden ratio
 const SCALE_FACTOR = 1 / PHI;  // Inverse of golden ratio for scaling down
 
 // Color mapping for visual depth
 const LEVEL_COLORS = {
-    1: 0xffffff,  // White
-    2: 0xe1e1e1,  // Light gray progression
-    3: 0xc3c3c3,
-    4: 0xa5a5a5,
-    5: 0x878787,
-    6: 0x696969,
-    7: 0x4b4b4b,
-    8: 0x2d2d2d
+    1: 0x00ffff,  // Cyan
+    2: 0x0088ff,  // Light blue
+    3: 0xff00ff,  // Magenta
+    4: 0xff8800,  // Orange
+    5: 0xff0000   // Red
 };
 
 // Create a container for the entire structure
