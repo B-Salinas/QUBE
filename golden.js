@@ -10,73 +10,62 @@ renderer.setClearColor(0x000000);
 document.body.appendChild(renderer.domElement);
 
 // Constants
-const MAX_DEPTH = 3;  // We can go deeper since we're scaling by golden ratio
+const MAX_DEPTH = 2;  // Adjusted for typical hardware
 const BASE_SIZE = 2;
-const PHI = 1.618033988749895;  // Golden ratio
-const SCALE_FACTOR = 1 / PHI;  // Inverse of golden ratio for scaling down
+const PHI = 1.618033988749895;
+const SCALE_FACTOR = 1 / PHI;
 
-// Color mapping for visual depth
+// Color mapping with distinct colors for the golden path
 const LEVEL_COLORS = {
-    1: 0x00ffff,  // Cyan
-    2: 0x0088ff,  // Light blue
-    3: 0xff00ff,  // Magenta
-    4: 0xff8800,  // Orange
-    5: 0xff0000   // Red
+    1: 0xffd700,  // Gold
+    2: 0xffa500,  // Orange
+    3: 0xff4500,  // Red-Orange
+    4: 0xff1493,  // Deep Pink
+    5: 0x9400d3   // Violet
 };
 
-// Create a container for the entire structure
 const entireStructure = new THREE.Object3D();
 scene.add(entireStructure);
 
-// Track the golden spiral path
-const spiralPoints = [];
-
-function createGoldenCube(depth, size, position, isSpiral = true) {
+function createGoldenCube(depth, size, position, isGoldenPath = true) {
     if (depth > MAX_DEPTH) return;
 
-    // Create cube
     const geometry = new THREE.BoxGeometry(size, size, size);
     const material = new THREE.MeshBasicMaterial({
         color: LEVEL_COLORS[depth],
         wireframe: true,
         transparent: true,
-        opacity: isSpiral ? 0.8 : 0.3  // More visible if on spiral path
+        opacity: isGoldenPath ? 1.0 : 0.15  // Full opacity for path, very transparent for others
     });
 
     const cube = new THREE.Mesh(geometry, material);
     cube.position.copy(position);
     entireStructure.add(cube);
 
-    if (isSpiral) {
-        spiralPoints.push(position.clone());
-    }
-
     if (depth < MAX_DEPTH) {
         const newSize = size * SCALE_FACTOR;
-        
-        // Calculate next position based on golden ratio
-        // We'll follow a specific path through the octants
         const offset = size * SCALE_FACTOR / 2;
-        
-        // Choose next spiral position based on depth
-        let nextSpiralPos;
+
+        // Calculate next golden path position
+        // Using a consistent pattern for the golden path
+        let nextGoldenPos;
         switch (depth % 3) {
             case 0:
-                nextSpiralPos = new THREE.Vector3(offset, -offset, -offset);
+                nextGoldenPos = new THREE.Vector3(offset, -offset, -offset);
                 break;
             case 1:
-                nextSpiralPos = new THREE.Vector3(-offset, offset, -offset);
+                nextGoldenPos = new THREE.Vector3(-offset, offset, -offset);
                 break;
             case 2:
-                nextSpiralPos = new THREE.Vector3(-offset, -offset, offset);
+                nextGoldenPos = new THREE.Vector3(-offset, -offset, offset);
                 break;
         }
 
-        // Create the next cube in the golden spiral
-        const newSpiralPosition = position.clone().add(nextSpiralPos);
-        createGoldenCube(depth + 1, newSize, newSpiralPosition, true);
+        // Create next cube in golden path
+        const newGoldenPosition = position.clone().add(nextGoldenPos);
+        createGoldenCube(depth + 1, newSize, newGoldenPosition, true);
 
-        // Create additional cubes in other octants (non-spiral path)
+        // Create other cubes (non-golden path)
         const octants = [
             new THREE.Vector3(-offset, -offset, -offset),
             new THREE.Vector3(-offset, -offset, offset),
@@ -89,7 +78,7 @@ function createGoldenCube(depth, size, position, isSpiral = true) {
         ];
 
         octants.forEach(octant => {
-            if (!octant.equals(nextSpiralPos)) {
+            if (!octant.equals(nextGoldenPos)) {  // Skip the golden path position
                 const newPosition = position.clone().add(octant);
                 createGoldenCube(depth + 1, newSize, newPosition, false);
             }
@@ -97,27 +86,25 @@ function createGoldenCube(depth, size, position, isSpiral = true) {
     }
 }
 
-// Create the initial structure
+// Create initial structure
 createGoldenCube(1, BASE_SIZE, new THREE.Vector3(0, 0, 0));
 
-// Set up camera
+// Camera setup
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 
-// Add controls
+// Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.rotateSpeed = 0.5;
 
-// Animation parameters
-const rotationSpeed = 0.001;  // Slower rotation to observe the structure
+// Animation
+const rotationSpeed = 0.005;
 
-// Animation loop
 function animate() {
     requestAnimationFrame(animate);
     
-    // Gentle rotation
     entireStructure.rotation.y += rotationSpeed;
     entireStructure.rotation.x += rotationSpeed * 0.5;
     
@@ -125,7 +112,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Handle window resizing
+// Window resize handler
 window.addEventListener('resize', onWindowResize, false);
 
 function onWindowResize() {
