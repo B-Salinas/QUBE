@@ -33,7 +33,7 @@ const createNestedCube = (depth = 0, maxDepth = 15, scale = 1) => {
 };
 
 createNestedCube();
-camera.position.z = 3;
+camera.position.z = 1.5;
 
 const animate = () => {
     requestAnimationFrame(animate);
