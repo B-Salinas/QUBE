@@ -1,1 +1,36 @@
+# macOS
 .DS_Store
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+.vite/
+
+# Test coverage
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Temp files
+temp/
+tmp/
+*.tmp
+
+# IDE/editor folders
+.vscode/
+.idea/
+*.swp
+
+# Environment files
+.env
+.env.*
