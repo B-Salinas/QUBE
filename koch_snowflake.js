@@ -16,8 +16,8 @@ const SCALE_FACTOR = 0.4; // Reduced from 0.5 to prevent overlap at deeper level
 
 // Color and opacity mapping for each level
 const LEVEL_PROPERTIES = {
-    1: { color: 0xffffff, opacity: 1.0 },    // White
-    2: { color: 0x61dafb, opacity: 0.9 },    // Light blue
+    1: { color: 0x61dafb, opacity: 1.0 },    // White 0xffffff
+    2: { color: 0x61dafb, opacity: 0.9 },    // Light blue 0x61dafb
     3: { color: 0x41c7c7, opacity: 0.8 },    // Teal
     4: { color: 0x2288aa, opacity: 0.7 },    // Darker blue
     5: { color: 0x145566, opacity: 0.6 },    // Deep blue
