@@ -5,12 +5,13 @@ import GUI from 'lil-gui';
 let scene, camera, renderer, controls;
 let cubes = [];
 let axesHelper = null;
+let colorFolders = [];
 
 const params = {
   recursionDepth: 2,
   cubeSize: 1,
   rotationSpeed: 0.01,
-  wireframe: false,
+  wireframe: true,
   color: 0x00ffcc,
   recursionMode: 'vertices', // 'vertices' or 'contained'
   showAxes: true,
@@ -213,15 +214,15 @@ function animate(time) {
 
 // GUI
 const gui = new GUI();
-gui.add(params, 'recursionDepth', 1, 4, 1).onChange(updateCubes);
+gui.add(params, 'wireframe').onChange(updateCubes);
+gui.add(params, 'showAxes').onChange(updateAxesHelper);
+gui.add(params, 'axesStatic').onChange(updateAxesHelper);
+gui.add(params, 'axesBound', ['largest', 'smallest']).onChange(updateAxesHelper);
 gui.add(params, 'cubeSize', 0.1, 2).onChange(updateCubes);
 gui.add(params, 'rotationSpeed', 0, 0.1);
-gui.add(params, 'wireframe').onChange(updateCubes);
-gui.addColor(params, 'color').onChange(updateCubes);
+gui.add(params, 'recursionDepth', 1, 4, 1).onChange(updateCubes);
 gui.add(params, 'recursionMode', ['vertices', 'contained']).onChange(updateCubes);
-gui.add(params, 'showAxes').onChange(updateAxesHelper);
-gui.add(params, 'axesBound', ['largest', 'smallest']).onChange(updateAxesHelper);
-gui.add(params, 'axesStatic').onChange(updateAxesHelper);
+gui.addColor(params, 'color').onChange(updateCubes);
 gui.add(params, 'pulseEffect').onChange(() => { /* no need to updateCubes, just toggles animation */ });
 gui.add(params, 'pulseSpeed', 0.1, 5.0).onChange(() => { /* no need to updateCubes */ });
 
