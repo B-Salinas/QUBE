@@ -1,4 +1,4 @@
-# 2024 Security Policy
+# 2025 Security Policy
 
 ## Supported Versions
 
