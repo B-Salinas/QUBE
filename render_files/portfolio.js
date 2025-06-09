@@ -15,9 +15,10 @@ controls.enableDamping = true;
 camera.position.z = 5;
 
 // Create materials for different colors
-const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
-const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-const greenMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+// original colors
+// const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+// const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+// const greenMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
 
 // Create 4D vertices of a tesseract
 const vertices4D = [
