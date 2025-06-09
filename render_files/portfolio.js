@@ -12,13 +12,14 @@ document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-camera.position.z = 5;
+camera.position.z = 3;
+camera.position.y = 3;
+camera.position.x = 3;
 
 // Create materials for different colors
-// original colors
-// const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
-// const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
-// const greenMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+const blueMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+const redMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+const greenMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
 
 // Create 4D vertices of a tesseract
 const vertices4D = [
