@@ -114,6 +114,21 @@ const positionOffsets = [
 ];
 
 let whiteTesseractLines, blueTesseractLines, redTesseractLines;
+let trackingSphere1, trackingSphere2, trackingSphere3;
+
+// Create tracking spheres for all three tesseracts
+const sphereGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+const greenSphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Green sphere
+const blueSphereMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // Blue sphere
+const redSphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red sphere
+
+trackingSphere1 = new THREE.Mesh(sphereGeometry, greenSphereMaterial);
+trackingSphere2 = new THREE.Mesh(sphereGeometry, blueSphereMaterial);
+trackingSphere3 = new THREE.Mesh(sphereGeometry, redSphereMaterial);
+
+scene.add(trackingSphere1);
+scene.add(trackingSphere2);
+scene.add(trackingSphere3);
 
 function animate() {
     requestAnimationFrame(animate);
@@ -150,6 +165,26 @@ function animate() {
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         const lines = new THREE.LineSegments(geometry, config.material);
         allLines.push(lines);
+        
+        // Update tracking sphere position for each tesseract
+        const innerCubeVertices = vertices4D.slice(8, 16);
+        const innerCube3D = innerCubeVertices.map(v => project4Dto3D(v, time, config.speedMultiplier));
+        
+        // Calculate center of inner cube
+        const center = new THREE.Vector3();
+        innerCube3D.forEach(vertex => center.add(vertex));
+        center.divideScalar(8);
+        
+        // Add position offset and set sphere position
+        center.add(config.positionOffset);
+        
+        if (index === 0) {
+            trackingSphere1.position.copy(center);
+        } else if (index === 1) {
+            trackingSphere2.position.copy(center);
+        } else if (index === 2) {
+            trackingSphere3.position.copy(center);
+        }
     });
     
     // Assign to variables and add to scene
