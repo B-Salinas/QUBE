@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import WebGL from "three/addons/capabilities/WebGL.js";
 
-// import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-// import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+// Check if WebGL is available
+if (!WebGL.isWebGLAvailable()) {
+  console.error('WebGL is not available');
+  document.body.appendChild(WebGL.getWebGLErrorMessage());
+}
 
 // Set up the scene
 let scene = new THREE.Scene();
@@ -17,7 +20,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Create a cube
-let cubeGeometry = new THREE.BoxGeometry(2, 2, 2, 3, 3, 3);
+let cubeGeometry = new THREE.BoxGeometry(2, 2, 2);
 let cubeMaterial = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   wireframe: true,
@@ -25,16 +28,28 @@ let cubeMaterial = new THREE.MeshBasicMaterial({
 
 console.log(cubeGeometry);
 
-// Create lines from opposite face midpoints
-let face1 = cubeGeometry.faces[0]; // assuming a standard cube
-let face2 = cubeGeometry.faces[5];
+// Create lines from opposite face midpoints using modern BufferGeometry
+let positions = cubeGeometry.attributes.position;
+let indices = cubeGeometry.index;
 
-let midpoint1 = new THREE.Vector3()
-  .addVectors(cubeGeometry.vertices[face1.a], cubeGeometry.vertices[face1.b])
-  .divideScalar(2);
-let midpoint2 = new THREE.Vector3()
-  .addVectors(cubeGeometry.vertices[face2.a], cubeGeometry.vertices[face2.b])
-  .divideScalar(2);
+// Get the first and last face vertices for the line
+let face1Vertex1 = new THREE.Vector3();
+let face1Vertex2 = new THREE.Vector3();
+let face2Vertex1 = new THREE.Vector3();
+let face2Vertex2 = new THREE.Vector3();
+
+// Get vertices from first face (indices 0, 1, 2)
+face1Vertex1.fromBufferAttribute(positions, indices.getX(0));
+face1Vertex2.fromBufferAttribute(positions, indices.getX(1));
+
+// Get vertices from last face (indices 18, 19, 20) - assuming 6 faces with 4 vertices each
+let lastFaceStart = indices.count - 6;
+face2Vertex1.fromBufferAttribute(positions, indices.getX(lastFaceStart));
+face2Vertex2.fromBufferAttribute(positions, indices.getX(lastFaceStart + 1));
+
+// Calculate midpoints
+let midpoint1 = new THREE.Vector3().addVectors(face1Vertex1, face1Vertex2).multiplyScalar(0.5);
+let midpoint2 = new THREE.Vector3().addVectors(face2Vertex1, face2Vertex2).multiplyScalar(0.5);
 
 let lineGeometry = new THREE.BufferGeometry().setFromPoints([
   midpoint1,
@@ -51,13 +66,22 @@ scene.add(line);
 // Set camera position
 camera.position.z = 5;
 
+// Handle window resize
+window.addEventListener('resize', onWindowResize, false);
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 // Render the scene
 function animate() {
   requestAnimationFrame(animate);
 
   // Rotate the cube
-  cube.rotation.x += 0.08;
-  cube.rotation.y += 0.05;
+  cube.rotation.x += 0.01;
+  cube.rotation.y += 0.01;
 
   renderer.render(scene, camera);
 }
